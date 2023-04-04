@@ -1,0 +1,1 @@
+# android_kotlin_earthquake_monitor_app
