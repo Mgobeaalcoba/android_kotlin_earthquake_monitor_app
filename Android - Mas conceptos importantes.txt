@@ -1,0 +1,1018 @@
+Activity = Pantalla en Android
+Package Name = Forma en la que Google reconoce e identifica a una aplicación en la playstore
+El formato del package name es: com.{nombre_compañia}.{nombre_proyecto}
+SDK = Kit de desarrollo de software. 
+Minimum SDK = La versión minima de Android en la que se podrá correr nuestra aplicación
+De acuerdo a la versión que escojamos vamos a soportar una porción mayor o menor de dispositivos Android en el mercado. Logicamente el trade off acá es que mientras mas antigua la versión mayor soporte de dispositivos pero menor cantidad de capacidades para nuestra app. 
+
+Para comenzar a crear una app desde cero con Android Studio es tan simple como: 
+1- Abrirlo y seleccionar new project
+2- Elegir el template apropiado a la app que vamos a construir. Si ninguno sirve elegimos el "empty activity" para arrancar desde cero. 
+3- Ponemos nombre al proyecto y al paquete (como se verá en la marketplace), elegimos el minimum SDK y creamos. 
+4- Listo tenemos nuestra maqueta de aplicación vacia lista para comenzar a llenarla. 
+5- Desde el SDK Manager vamos a realizar algunas configuraciones antes de arrancar. Chequear que el ultimo "Android SDK" (sección SDK Platforms) lo tengamos "Installed" y sino hacerlo seleccionando los ultimos (o los que nos  interesen) y luego presionando "apply"
+6- Luego vamos a la sección "SDK Tools" e instalamos: Android SDK Build-Tools, Android Emulator, Android SDK Platform-Tools, Android SDK Tools (para Marzo 2023 obsoleto) y Intel x86 Emulator Accelerator (HAXM installer)
+
+----------------------------------------------
+
+¿Que vemos con la aplicación creada?
+1- A la izquierda todo el directorio completo de nuestro proyecto
+2- Abiertos para modificar o solo leer dos archivos: el MainActiviy.kt que es el archivo donde vamos a programar toda la logica de nuestra aplicación y el activity_main.xml que es donde vamos a encontrar como se va a ver nuestra pantalla. 
+3- Partes del directorio importantes al arrancar: carpeta "java" que es donde estará nuestro codigo y carpeta "res" que es donde estarán nuestros recursos. Por ejemplo nuestras pantallas estarán dentro de la sub carpeta "layout" de la carpeta "res", allí es donde se aloja el file activity_main.xml que mencioné en el punto 2
+
+----------------------------------------------
+
+¿Como creamos un emulador de celular android donde probar nuestras aplicaciones? 
+
+1- Buscamos en el menu del proyecto abierto el logo del AVD Manager (Android Virtual Device Manager) y lo seleccionamos. Ahora se llama solo "Device Manager" y tiene dentro una division entre "Virtual" o "Physical"
+2. Dentro del "DM" voy a seleccionar la opción de "Create Device" y allí puedo simular un "phone", "tv" "wear OS", "tablet" y "automotive" 
+3- Escojo la category y el nombre del dispositivo que deseo simular. Ejemplo Pixel 2
+4- Luego decido que System Image (SI) de Android quiero que tenga ese dispositivo. Si no lo tengo debo instalarlo desde la misma pantalla. Ejemplo: Android 11 R (El que tengo en mi Xiaomi 9T Pro) o el Android 9 Pie que fue muy popular y es el que voy a estar usando en esta ocasión. 
+5- En la siguiente pantalla puedo decidir si al comenzar el emulador va a comenzar de forma vertical u horizontal. 
+6- Le doy finish y  eso me va a generar mi primer emulador. Puedo crear todos los que desee para testear mi app en distintos devices pero teniendo en cuenta que cada emulador pesa demasiado, por lo que si puedo trabajar con 1 solo mejor aún.  
+7- Dandole "Play" desde el "DM" vamos a encender el device creado. Tmb se puede dar play dsd el manu principal seleccionando el device en el desplegable y luego presionando el boton de "run app" (logo de Play tradicional) que se ubica a su derecha. 
+
+----------------------------------------------
+
+¿Como emulamos nuestro programa en un dispositivo real? 
+
+1- En nuestro device simulado vamos a configuraciones (ruedita en opciones) y allí buscamos "acerca del teléfono" que en el emulador es "acerca del dispositivo emulado"
+2- una vez aquí debemos buscar "número de compilación" (En Xiaomi se llama "Versión MIUI" y está en "Acerca del telefono")y empezar a darle click y nos va a aparecer un tipo contador que dice que estamos a "3, 2, 1, un paso de ser programador" y "ya eres programador".
+3- Una vez vimos ese mensaje... Vamos para atras y dentro de "Sistema" presionamos sobre "Avanzado" donde vamos a encontrar una nueva opción que dice "Opciones para programadores", presionamos... (En Xiaomi debería estar debajo de "Acerca del telefono" o en su defecto lo buscamos con la lupita y lo encontraremos.)
+4- Allí debemos garantizar que estén activadas las siguientes opciones: El "Activado", "Permanecer Activo", "Depuración por USB" o "Wireless debugging" (Es la que nos va a permitir que la computadora nos identifique el celular que acabamos de configurar). Clave tener también activado el permiso "Instalar vía USB" mas allá de que el emparejamiento sea Wi Fi para que Android Studio pueda instalar la .apk en nuestro device. 
+5- Activado todo lo anterior (fundamentalmente la opcion de "Depuración por USB") ya vamos a encontrar en "Logcat" (Una de las opcinoes del panel inferior de Android Studio la posibilidad de cambiar de dispositivos, incluyendo a los celulares reales).
+6- Vamos entonces al DM, alli ponemos incorporar un nuevo device, esta vez "physical" y seguimos en el celular fisico la siguiente ruta: Developer Options -> Wireless debugging -> Pair using QR code -> Escaneamos el QR de Android Studio y lo tendremos cargado para probar app en un dispositivo real Android mientras estén unidas a la misma red wifi. Para ello debemos apretar el boton de "run app" señalando al device fisico apareado. 
+
+----------------------------------------------
+
+Importante: Para armar los repos de un proyecto Android con Kotlin debemos arrancarlos desde la carpeta padre que es la que lleva el nombre del proyecto. En este caso "Hello World". Dentro de ella va a estar la carpeta "app" que es la que nos muestra android studio y el archivo .gitignore por ejemplo. 
+
+------------------------------------------------
+
+En Android Studio / Kotlin cada "Activity" (pantalla) de nuestra app va a tener dos archivos: 
+1- Un {MainActivity}.kt --> File Kotlin que tiene nuestra logica del programa
+2- Un {activity_mian}.xml --> File Xml que tiene el contenido de nuestro programa. 
+
+Todo lo que vemos en una pantalla de Android se lo conoce como "views":
+1- Image views -> Las imagenes
+2- Text views -> Los textos en pantalla
+
+El archivo de nuestras views es el file .xml, que al abrirlo lo veremos como una imagen de nuestra pantalla. Y no veremos el codigo ni lo podremos editar salvo que toquemos en "Split" sobre el margen superior derecho de la pantalla. 
+
+Podemos editar el diseño a traves del codigo (buena práctica) o si lo preferimos a traves de su interface visual (Buenisima posibilidad que brinda Android Studio pero no Intellij IDEA por ejemplo) 
+
+Por ejemplo dentro de la etiqueta <TextView... vamos a encontrar el valor android:text("lalala") -> Allí es donde debemos poner el texto que vemos en nuestra aplicación. Dentro de <TextView... vamos a encontrar muchas otras etiquetas del tipo android:{atributo} que nos permitirán dejar el diseño como nosotros deseamos. Por ejemplo:
+
+android:textSize="24sp"...
+
+Desde aquí se hace todo el diseño. Podemos armar el texto del cuerpo de la app (la sugerencia de que va por ejemplo se llama "android:hint") en la sección <EditText...
+
+Podemos armar botones de nuestras pantallas con la etiqueta <Button...
+
+(Ver para entender mas detalles del diseño de nuestra "Activity" el file "activity_main.xml")
+
+---------------------------------------------
+
+Cuando desarrollamos aplicaciones Android en Android Studio... Los archivos .xml reemplazan a los archivos HTML y CSS del diseño web tradicional. ¿Es una afirmación verdadera o falsa a tu criterio? 
+
+En cierto modo, la afirmación es verdadera, ya que en el desarrollo de aplicaciones Android en Android Studio, los archivos .xml se utilizan para definir la estructura y el diseño de la interfaz de usuario, de manera similar a cómo se utilizan HTML y CSS en el diseño web tradicional.
+
+Sin embargo, hay algunas diferencias significativas entre los archivos .xml y HTML/CSS. En Android, los archivos .xml se utilizan principalmente para definir la jerarquía de vistas y widgets que se utilizarán en la interfaz de usuario, mientras que en HTML se utilizan etiquetas para definir la estructura y el contenido de una página web.
+
+Además, mientras que CSS se utiliza para aplicar estilos y diseños a elementos específicos de una página web, en Android Studio, se utilizan archivos .xml separados para definir los estilos y diseños de la interfaz de usuario.
+
+En resumen, aunque hay similitudes entre el uso de archivos .xml en Android Studio y HTML/CSS en el diseño web, cada plataforma tiene sus propias convenciones y diferencias significativas en cuanto a su uso.
+
+--------------------------------------------
+
+LinearLayout (Segunda etiqueta del proyecto solo por debajo de la etiqueta principal <?xml ...) con android:orientation="vertical" de .xml (para Android Studio) sería el equivalente a una ordenación del "display: block" en CSS para desarrollo web desktop.
+
+match_parent: Ocupa todo el espacio disponible del ancho o el largo nuestra Activity. wrap_content ajusta el ancho o largo a lo ocupado por el contenido. Sino también podemos setear el espacio en pixeles dependientes (del tamaño del dispositivo) que se plantean como por ej: android:layout_width="2000dp"
+
+En internet se puede buscar por ejemplo, ¿Que tipo de View en Android Studio se puede usar para un boton de confirmación? 
+
+Los margins & padding se pueden manipular de forma conjunta o de forma separada igual que en CSS.
+
+16dp depending pixels es como un valor de espaciamiento por default en Android.
+
+Todas las labels que comienzan con android:{type} se van a visualizar en la app productiva. Si quiero testear en modo desarrollo como se visualiza algo puedo hacerlo usando alguna tools:{type}. En el caso por ejemplo de la respuesta que da la app sobre la edad que tendrías como perro sería tools:text="Tu edad canina es de 120 años"
+
+-------------------------------------------
+
+Para desarrollar la logica de "Mi edad canina" debemos identificar cada "view" en mi XML con un "id" para luego poder escuchar los eventos que ocurren sobre el desde nuestro archivo kotlin y manejar nuestra aplicación como deseemos. 
+
+Metodo onCreate de MainActivity: 
+En este método se ejecuta automáticamente cuando esta activity se crea, es decir, cuando abrimos la
+aplicación, se crea esta pantalla y automáticamente se ejecuta.
+
+Este metodo lo que hace es que establece que determinado layout (en este caso "activity_main") es el que va a pertenecer a esta Activity y por lo tanto el que va a mostarnos en pantalla de nuestro device Android
+
+-------------------------------------------
+
+Uso de los "Log": 
+
+1- Puedo visualizarlos en el logcat
+2- Debo crearlos usando el objeto "Log" con el metodo que corresponda "d" de debug, etc. 
+3- Sirve para ir siguiente por logcat los eventos que ocurren en nuestro programa y detectar posibles errores.
+4- Usos de cada categoria (metodos de Log): 
+"debug" y "verbose": Para transmitir información o comentarios de actividad
+"info" y "warm": Para transmitir alertas que pueden llegar a romper nuestra app
+"error": Para transmitir errores que rompen nuestra app
+5- Se llaman como Log.v, Log.d, Log.i, Log.w, Log.e
+
+------------------------------------------
+
+Una opción para mostrarles mensajes por pantalla al usuario frente a un error son los "Toast":
+
+Ej:
+
+Toast.makeText(this, "Debes insertar tu edad",Toast.LENGTH_SHORT).show()
+
+Argumentos de un Toast: 
+Contexto: A que Activity hacen referencia -> Poniendo this (sin comillas) hacemos que refieran a la activity en la cual estamos escribiendo el codigo. Por ej: MainActivity
+Texto: El mensaje a mostrar
+Duración: Solo 2 opciones: LENGTH_SHORT o LENGTH_LONG
+
+-----------------------------------------
+
+Buenas practicas con Strings: 
+
+1- Debemos guardar todas las Strings en ../res/values/strings.xml para luego invocarlas en activity_main.xml como hicimos con las imagenes. Es decir, dentro del valor de android.text="@string/{nombre_string_guardado}" 
+2- De esta forma evitamos el "hardcodeo" de variables que es considerado una mala practica. 
+3- Los Log´s y las tools no son necesarios guardar como strings en strings.xml. Solo los strings que le vamos a mostrar al usuario. 
+
+-----------------------------------------
+
+Podemos hacer que Android Studio no interprete como errores el Español sin instalar un diccionario. 
+
+1- Boton derecho sobre carpeta "res"
+2- New -> Android Resource Directory
+3- Directory name = "values-es" para español o "values-pt" para portugués. 
+4- Presionamos "Ok". Parece que nada ha cambiado pero...
+5- Con el boton derecho sobre "res" buscamos "Open in" -> "Explorer" para ver que se creo la carpeta "values-es".
+6- Luego con click derecho en "values" creamos un "new" -> "Values Resource File"
+7- Le ponemos de nombre "string.xml" y en directory name ponemos "values-es"
+8- Ya nos muestra la sección de Project una carpeta "strings" dentro de "values" y dentro de ella dos archivos llamados igualmente como "strings.xml"
+9- Al tener dos archivos de strings, dependiendo de que idioma tengamos configurado en el celular nos no lo va a mostrar en español o en ingles. 
+10- Si cambiamos de idioma también va a cambiar lo que nos muestra el celular. 
+
+----------------------------------------
+
+findViewById nos sirve para el objetivo de linkear una view con logica Kotlin. Pero sin embargo es un proceso pesado. Que puede enlentecer nuestra aplicación si la misma es muy grande. Para estos casos existe otra forma de hacerlo que se llama "Data Binding". ¿Por que? 
+
+1- findViewById carga las views en la logica Kotlin en tiempo de ejecución. Es decir, con el programa en marcha. 
+2- dataBinding carga las views en tiempo de compilación. Es decir, antes de comenzar a ejecutar nuestro programa. 
+
+El data binding es algo nuevo de Android. Por lo que muchas aplicaciones aún están utilizando el findViewByID. 
+Por eso es importante conocer ambos. 
+
+¿Que es Gradle? Es el mecanismo que utiliza Android para compilar nuestro codigo y llevarlo a un lenguaje que el celular pueda entender. 
+
+1- Buscamos la carpeta "Gradle Scripts" que está por fuera de "app". 
+2- Dentro de ella buscamos "build.gradle (Module:app)" y lo abrimos.
+3- Y en dicho archivo vamos a agregar:
+. Debajo del ultimo aplly: apply plugin: 'kotlin-kapt'
+. Dentro de android {} y debajo de buildTypes {}:
+
+dataBinding {
+	enabled = true
+}
+
+4- Nos va a pedir autorizacion para sincronizar dataBinding con el proyecto. Lo cual tenemos que aprobar. 
+5- Vamos a nuestro layout, activity_main.xml, y reemplazamos el "LinealLayout..." por un data binding layout ayudandonos con las sugerencias (Alt+Enter) de Android Studio. 
+6- Nos encierra todo el xml dentro de <layout... y nos crea una sección de <data... por el momento vacia. Todo lo que hicimos lo encierra en una segunda sección de igual jerarquia que <data... llamada <LinearLayout...
+7- Al realizar esto pasos se genero un archivo que se llama "activityMainBinding". El mismo vamos a tener que usarlo ahora dentro de "MainActivity.kt"
+Así: 
+        // Sumo el data binding que incorporé previamente en build.gradle:
+
+        val binding = ActivityMainBinding.inflate(layoutInflater) // Inflar en Android: Formar un layout en memoria. 
+	  setContentView(binding.root)
+
+        // Variables para escuchar los eventos en el layout creadas mediante binding:
+
+        val ageEdit = binding.ageEdit // linkeo mi variable con una view del XML
+        val resultText = binding.resultText
+        val button = binding.button
+
+Hay dos formas de añadir DataBinding al archivo build.gradle:
+
+dataBinding {
+    enabled = true
+}
+Pero recientemente Android sacó en su documentación una nueva forma:
+
+buildFeatures {
+    dataBinding true
+}
+Ambas formas funcionan correctamente y no debería haber problemas por usar una o la otra, pero es bueno que lo sepas por si te topas con cualquiera de ellas sepas que son para lo mismo.
+
+--------------------------------------
+
+Cargar icono a nuestra aplicacion.
+
+La carpeta mipmap es la carpeta donde van los iconos de nuestra aplicación.
+
+app -> res -> mipmap -> ic_launcher / ic_launcher_round / ic_launcher_foreground
+
+En ic_launcher vamos a encontrar nuestros iconos cargados. Y digo nuestros porque debemos cargar varias versiones con distintas resoluciones para de esta forma soportar distintos dispositivos.
+
+En ic_launcher_round lo mismo pero los iconos redondeados en distintas resoluciones tambien. 
+
+Por default, cualquier proyecto android trae la imagen del robot de android. Pero yo puedo cargar y procesar en distintas resoluciones y formas la imagen que quiera.
+
+1- Boton derecho sobre "mipmap" y selecciono "New" -> "Image Asset"
+2- Se abré una sección para cargar la foto que queramos desde "Asset type" y crear multiples versiones. 
+
+-------------------------------------
+
+¿Que es el android manifest? 
+
+Archivo xml que está ubicado dentro de ../app/manifest y que se llama AndroidManifest.xml
+
+Es un resumen de nuesta app. 
+
+Podemos encontrar el nombre, el icono, el icono redondo y también cada una de nuestras activitys.
+
+En este caso, solo tenemos una activity que se llama MainActivity pero la mayoria de las apps tienen mas de una activity. Dentro de la etiqueta de activity en nuestra main nos vamos a encontrar con una etiqueta de <intent-filter... que nos va a indicar que esta activity es la principal o MAIN y es la que se debe ejecutar al iniciar la operacion (LAUNCHER)
+
+Otra cosa fundamental es que los permisos que va a requerir nuestra aplicación los tenemos que declarar aquí en el manifest. 
+
+---------------------------------------
+
+Tipos de layout de diseño en Android: 
+
+Tenemos 4 tipos: 
+
+FrameLayout: Diseñado para mostrar unicamente un "View" a la vez. Si ponemos mas de uno van a tapar a los que estaban primero. (Es el menos utilizado en la industria)
+
+LinearLayout Vertical (Usé en "Mi edad canina"): Al agregar un view se agrega en la parte superior de la pantalla y los proximos que agregamos van abajo del anterior de forma vertical
+
+LinearLayout Horizontal: Lo mismo que el anterior pero se ordenan horizontalmente y si ya no hay espacio van a quedar sesgados. 
+
+RelativeLayout: Podemos poner las views que queramos y donde queramos. Nosotros establecemos la ubicación de nuestras Views. Es el mas versatil. 
+
+1 activity puede tener 1 o muchos layout. Pero tenemos que tratar de tener la menor cantidad posible. Dado que a mas layout mas recursos consumimos de los devices. Por ejemplo, si tenemos que insertar un LinearLayout Horizontal dentro de una LinearLayout Vertical es preferible armar lo mismo en un RelativeLayout. 
+
+Existe un 5 tipo de Layout que es el ConstraintLayout (Nuevo en Android):
+
+Podemos hacer un diseño de forma visual arrastrando los distintos tipos de views que queremos a nuestro layout seleccionando en el margen superior derecho de nuestro archivo "activity_main.xml" la opción de "Design".
+
+En los casos de los 4 primeros layout podemos también hacerlos por diseño, en lugar de por codigo. Pero no es recomendable. En el caso del ConstraintLayout solo se puede hacer por diseño. Ya no por codigo.
+
+Es un tipo de layout mas versatil que el RelativeLayout incluso pero se recomienda usarlo con entre 5 y 10 views. Mas de 10 views debemos ir al relative. 
+
+----------------------------------------
+
+Fin de nuestra primera app interactiva llamada "Mi edad canina"
+
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
+Segunda App: Registro de superheroes. 
+
+1- Configuramos un RelativeLayout: conceptos centrales: 
+
+tools:context=".MainActivity"
+
+android:layout_width="120dp"
+android:layout_height="120dp"
+
+android:src="@android:drawable/ic_menu_camera"
+
+android:layout_toEndOf="@+id/hero_image"
+android:layout_alignTop="@id/hero_image"
+android:layout_marginStart="16dp"
+
+android:layout_toEndOf="@+id/hero_image"
+android:layout_alignBottom="@id/hero_image"
+android:layout_marginStart="16dp"
+
+android:layout_below="@id/hero_image"
+android:layout_marginTop="16dp"
+android:background="@color/black"
+
+android:textColor="@color/black"
+android:layout_below="@id/divider"
+android:layout_marginTop="24dp"
+android:gravity="center"
+android:textSize="20sp"
+
+android:layout_marginTop="16dp"
+
+android:layout_below="@id/bio_edit"
+android:layout_marginTop="24dp"
+android:gravity="center"
+android:textSize="20sp"
+
+android:layout_marginTop="24dp"
+android:progressTint="@color/yellow"
+android:layout_centerHorizontal="true"
+android:layout_below="@id/power_title"
+
+android:layout_alignParentBottom="true"
+
+---------------------------
+
+Armamos una segunda activity. 
+
+1- Dentro de app/java/com.{empresa}.{proyecto} (la primera de las 3 iguales, donde está el MainActivity) presiono el boton derecho del mouse y busco "New" -> "Activity" -> "Empty activity"
+2- La nombro en función de lo que va a mostrar esa actividad de forma tal que quede "{description}Activity"
+3- Le damos "Finish" y esto nos crea solo dos archivos nuevos: un "{description}Activiy.kt" y un "activity_{description}.xml" alojado en res/layout/
+4- Por default este tipo de Layout va a venir como un "constraintlayout" y por lo tanto debemos manejarlo desde "diseño". 
+
+dependencia original de constraint: implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+actualizo a: implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+----------------------------
+
+Nuevo concepto: "Intent": 
+
+Un Intent. Yo lo veo como un paquete o un sobre que podría llevar contenido y este lo envías de una Activity a
+otra.
+
+    private fun openDetailActivity() {
+        // Creamos in intent activity:
+        val intent = Intent(this, DetailActivity::class.java)
+        startActivity(intent)
+    }
+
+Este "intent" va a enviar información desde "this", es decir, esta activity, a otra activity, en este caso DetailActivity
+
+Hay dos tipos de "Intent": 
+
+1- Explicits intents: Como el que hicimos para pasar de MainActivity a DetailActivity donde explicitamos desde donde estamos y hacia donde vamos.
+2- Implicits intents: Lo vamos a usar cuando queramos tomar fotos. 
+
+Truco: con dos veces "shift" se abre un buscador que nos permite entontrar de forma agil cualquier clase o archivo creado. 
+
+Una vez que escuchamos toda la info que nos carga el usuario en la MainActivity debemos guardarla en variables para leugo enviarla a la DetailActivity
+
+Una vez enviada podemos recibirla en la segunda activity si previamente hemos creado la conexion con el layout vía dataBinding. 
+
+---------------------------- 
+
+Explicite intent: 
+
+¿como pasar un objeto completo de una activity a otra en lugar de pasar valor por valor como hicimos con el "intent" con putExtra y el companion object en el receptor?
+
+Necesitamos la librería "kotlin-parcelize" que debe ser importada en "build.gradle (:app)". Para que esto funcione necesitamos dos condiciones adicionales: 
+1- En build.gradel (:project) tenemos que tener dependencias "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.20" o superior para que funcioné.
+2- No podemos aplicar "kotlin-parcelize" junto con "kotlin-android-extensions". Uno u el otro. 
+
+Paso a paso: 
+
+1- Creamos una nueva clase "hero" para poder crear un nuevo objeto/instanciación de esa clase "hero". ¿Como? Boton derecho sobre "com.{empresa}.{proyecto}" -> "New" -> "Kotlin File/Class"
+2- Construimos la clase "hero":
+
+class SuperHero (superHeroName: String, alterEgo: String, bio: String, power: Float)
+
+3- Instanciamos en "MainActivity" un nuevo SuperHero
+
+4- Lo pasamos como intent.putExtra(SUPERHERO_KEY, superhero)
+
+5- Modificamos el companion object de "DetailActivity.kt" para que la unica KEY sea SUPERHERO_KEY
+
+6- intent.putExtra() no acepta un objeto completo para pasar de una activity a otra. Para hacerlo primero debemos parcelarlo (convertirlo a bytes) y luego reconstruirlo en nuestra nueva activity ¿Como?:
+
+Escribiendo arriba del nombre de la clase a la que pertenece el objeto que queremos pasar @Parcelize arriba de la linea donde la declaramos. Nos va a pedir que declaremos que la clase es de un SuperType : Parcelable. El IDE lo hace por nosotros luego de Alt+Enter. 
+
+7- Con esto se quita el error de putExtra.
+
+------------------------------
+
+Variables en data binding: 
+
+1- Con data binding no solo podemos cargar nuestro template de forma mas rapida en el momento de la compilación sino que también podemos guardar nuestras variables logicas (en archivos .kt) que queremos mostrar en nuestros layout (archivos .xml) de forma tal que podemos ahorrarnos luego las lineas de codigo lógico donde le decimos a nuestro .kt que tiene que reemplazar los textos por información guardada en variables. Para eso debemos cargar las variables en nuestro archivo .xml:
+
+    <data>
+        <variable
+            name="superhero"
+            type="com.hackaprende.registrodesuperheroes.SuperHero" />
+    </data>
+
+2- Luego de cargadas las variables. Una variable por clase. Ya podemos quitar de nuestro .kt las lineas donde especificamos el texto que queremos mostrar. 
+
+3- Tenemos que especificar en el file de nuestra activity que el superhero que levantamos de la anterior activity es el objeto que queremos mostrar de tipo SuperHero en nuestro data binding así: 
+
+binding.superhero = superhero
+
+-------------------------------
+
+Implicit intents: Pasar fotos de una activity a otra mediante un implicit intent: 
+
+1- Escuchamos los click sobre la imagen de la camara:
+
+binding.superheroImage.setOnClickListener {
+            
+        }
+
+Se puede agregar un onClickListener a cualquier tipo de View. No solamente a un boton. 
+
+2- Llamamos a un nuevo metodo que se llame openCamera() y lo creamos:
+
+        binding.superheroImage.setOnClickListener {
+            openCamera()
+        }
+
+    }
+
+    private fun openCamera() {
+        
+    }
+
+3- Dentro la nueva función (o metodo?) llamada openCamara vamos a crear el implicit intent para abrir la camara:
+
+ private fun openCamera() {
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE) // Implicit intent
+	  tartActivityForResult(cameraIntent, 1000) // Es una indicación de comenzar el intent y esperar un resultado. 		El requestCode
+        	// El request code (1000 en este caso) puede ser cualquiera mientras no se repita el mismo en una misma 		Activity. Aca se abre la camara del telefono. 
+
+    }
+
+Es implicito, porque Android como SO decide con que aplicación de camara va a abrir el intent. No lo establemos nosotros de forma explicita como hicimos en el intent que conecta la MainActivity (this) con el DetailActivity:
+
+    private fun openDetailActivity(superhero : SuperHero) {
+
+        // Creamos in intent activity:
+        val intent = Intent(this, DetailActivity::class.java) // Explicit intent
+
+        // Solo voy a pasar como putExtra el objeto superhero:
+        intent.putExtra(SUPERHERO_KEY, superhero)
+
+        startActivity(intent) // Con esto estamos enviando todos los put extra a DetailActivity
+    }
+
+4- ¿Como recibimos la imagen que vamos a tomar? con la override fun "onActivityResult" que es una función que Android Studio ya nos trae precargada. Esta función se va a llamar automaticamente cuando volvamos de tomar una foto. Se implementa así: 
+
+// Inicializo una lateinit var: variable no se inicializará en el momento de la declaración, sino que se inicializará más tarde:
+
+    private lateinit var heroImage : ImageView
+
+ // Inicializo a mi "lateinit var":
+
+        heroImage = binding.superheroImage
+        heroImage.setOnClickListener {
+            openCamera()
+        }
+
+ // función que se va a llamar automaticamente cuando volvamos de tomar una foto:
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK && requestCode == 1000) {
+            val extras = data?.extras // Si la camara falla puedo no devolver bien las imagenes. Por ello el operador "?"
+            val heroBitmap = extras?.getParcelable<Bitmap>("data")
+            heroImage.setImageBitmap(heroBitmap)
+        }
+    }
+
+5- Chequeamos en el emulador que la camara funciones correctamente. Para mover la camara mantengo "shift" apretado y la muevo con el mouse. 
+
+6- Funciona la camara. Guarda la foto y la muestra en mi MainActivity. 
+
+7- Ahora hay que pasar la foto de la MainActivity hacia el DetailActivity con un intent. Lo vamos a hacer en el mismo "openDetalActivity" en el que estamos mandando al objeto superhero de una activity a la otra con una nueva key en el companion object del DetailActivity llamada BITMAT_KEY
+
+8- Bitmap es una clase de Java que ya implementa en su clase un parcelable. Por lo que no tenemos que agregar el @parcelable como hicimos con nuestra clase SuperHero. Eso lo podemos constatar haciendo Ctrl+Click en la clase "Bitmap". 
+
+9- Ahora pasamos como un segundo putExtra solo el Bitmap de heroImage así: 
+
+intent.putExtra(DetailActivity.BITMAP_KEY, heroImage.drawable.toBitmap())
+
+10- En DetailActivity vamos a recibir ese Bitmap y a mostrarlo en el layout así: 
+
+Recibo: 
+
+val bitmap = bundle.getParcelable<Bitmap>(BITMAP_KEY)!!
+
+Muestro: 
+
+binding.heroImage.setImageBitmap(bitmap)
+
+Truco: Con shift+F6 puedo pedirle al IDE que me cambie el nombre de una variable en todo el proyecto o archivo. Por ejemplo el id de una View. 
+
+-------------------------------------------
+
+Activity Result API. El reemplazo de override fun onActivityResult() {}:
+
+1- onActivityResult y startActivityResult son dos metodos o funciones que para el 2020 ya estaban deprecados. Es decir, no reciben mas mantenimiento pero funcionan. 
+
+2- En la actualidad se está usando Activity Result API que vamos a ver en el archivo .kt como funciona. 
+
+Pasos: 
+
+1- Vamos a crear una variable que es la que va a manejar el resultado de haber tomado una foto. Esta variable va a reemplazar a la función onActivityResult()
+
+2- Quedaría así: 
+
+    val getContent = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) {
+        bitmap ->
+        heroBitmap = bitmap
+        heroImage.setImageBitmap(heroBitmap)
+    }
+
+3- Importante: Para poder usar "registerForActivityResult" y "ActivityResultContracts" es necesario tener instalada la dependencia "implementation 'androidx.appcompat:appcompat:1.4.0'" o superior. Caso contrario no los reconoce. 
+
+4- Explicación sobre la variable getContent que armamos: 
+
+Esta línea de código utiliza la API de resultados de actividades de Android (Activity Results API) para registrar una actividad que toma una foto y luego manejar el resultado de esa actividad.
+
+Veamos cada parte de la línea de código:
+
+val getContent = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+    heroBitmap = bitmap
+}
+
+val getContent = es una declaración de variable que crea una nueva variable llamada getContent y le asigna un valor. En este caso, el valor que se le asigna a getContent es una instancia de ActivityResultLauncher.
+
+registerForActivityResult es un método que se utiliza para registrar una actividad que espera un resultado. Este método toma como argumento un objeto de tipo ActivityResultContract, que describe la actividad que se va a lanzar y el tipo de resultado que se espera.
+
+ActivityResultContracts.TakePicturePreview() es un objeto de clase TakePicturePreview que se utiliza para describir la actividad que se va a lanzar. En este caso, se está lanzando una actividad para tomar una foto previa.
+
+{ bitmap -> heroBitmap = bitmap } es una función lambda que se ejecuta cuando la actividad que se lanzó devuelve un resultado. La función lambda toma un argumento de tipo Bitmap, que es el resultado que se espera de la actividad. En este caso, la función lambda asigna el valor del Bitmap a la variable heroBitmap.
+
+En resumen, esta línea de código registra una actividad que toma una foto previa y espera un resultado. Cuando se completa la actividad y se recibe un resultado, la función lambda asigna el resultado a la variable heroBitmap.
+
+--------
+
+registerForActivityResult es una función de orden superior que toma como argumento una instancia de ActivityResultContract y una función lambda que se ejecuta cuando se recibe un resultado de la actividad que se lanzó.
+
+La función registerForActivityResult devuelve una instancia de ActivityResultLauncher, que es una clase que se utiliza para lanzar la actividad y recibir el resultado. Por lo tanto, al asignar el resultado de registerForActivityResult a la variable getContent, se está creando una nueva instancia de ActivityResultLauncher que se puede utilizar para lanzar la actividad y recibir el resultado.
+
+En resumen, getContent es una variable que contiene una instancia de ActivityResultLauncher que se puede utilizar para lanzar una actividad y recibir el resultado de esa actividad a través de una función lambda.
+
+5- Ya podemos deshacernos de onActivityResult y ahora queda depurar la forma en la que llamamos a la camara:
+- Modificamos la función openCamera():
+- Quitamos las dos lineas que ya teniamos. A saber: 
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE) // Implicit intent
+        startActivityForResult(cameraIntent, 1000)
+
+- Agregamos: 
+
+    private fun openCamera() {
+        getContent.launch(null)
+    }
+
+-------------------------------------
+
+¿Como guardamos las fotos en memoria para que se guarden con mejor calidad? 
+
+Con TekePicturePreview() solo conseguimos una preview o imagen de mala calidad.
+
+Para guardar la imagen en memoría y poder mostrarla en mejor calidad vamos a seguir usando ActiveResultAPI pero ya no con el metodo TakePicturePreview() sino con: TakePicture() -> Preview nos devolvía un Bitmat que luego guardabamos en nuestra variable heroBitmap. Pero ahora nos va a devolver un Boolean 
+
+Ver el codigo en MainActivity:
+
+Tener en cuenta que: Si la versión de Android del telefono es anterior a Android N o Nougat (API 24) se hace una manera y si es superior se hace de otra manera. El codigo ya está armado para realizar cualquiera de los dos caminos. 
+
+Luego tengo que modificar los permisos en AndroidManifest.XML: 
+
+        <provider
+            android:authorities="${applicationId}.provider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+Un provider es un permiso a otras aplicaciones para cederle datos de nuestra aplicación. 
+
+applicationId debe ser reemplazado por el nombre de nuestra app. En este caso: com.hackaprende.registrodesuperheroes
+
+"xml/provider_paths" no existe por el momento por lo que lo voy a crear: 
+
+1- Boton derecho sobre "res" -> "New" -> "Android Resource Directory" y lo llamo "xml" y su Resource Type tmb es "xml"
+2- Dentro de esa carpeta creo un "xml resource file". Este archivo es el que va a definir a dónde van a ir las otras aplicaciones a las que les mandemos la "uri", a dónde van a ir a buscar nuestros archivos.
+
+El archivo debe verse así: 
+
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Con este provider solo le estoy dando permiso a la camara a que valla la carpeta Environment.DIRECTORY_PICTURES
+que cree al momento de establecer el "fileDirectory" en el MainActivity:
+-->
+<paths>
+    <external-files-path
+        name="superhero_images"
+        path="."/>
+</paths>
+
+Al tener una imagen de mejor calidad, al pasar la imagen de una activity a otra esto provoca que la app se cierre. Por tal motivo debemos cambiar la config del intent.putExtra(DetailActivity.HERO_BITMAP_KEY, heroImage.drawable.toBitmap() reemplazando la imagen en si que es muy grande por el path (DetailActivity.HERO_BITMAP_KEY, picturePath). 
+
+Esto lo podemos ver investigando que nos indica el logcat ( Caused by: android.os.TransactionTooLargeException: data parcel size 4915968 bytes ).
+
+
+Luego reconstruimos la imagen en DetailActivity copiando la forma en la que lo construimos en MainActivity. 
+
+Y ya pasamos la imagen en buena calidad de una view a la otra. 
+
+------------------------------
+
+Agregar scroolview a nuestra app para cuando las pantallas son largas: 
+
+Truco: Podemos ir desde MainActivity hasta "activity_main" tocando "Ctrl+Click sobre "ActivityMainBinding" cuando cargamos la variable binding en MainActivity
+
+1- Debemos meter todo el layout dentro de un "ScroolView" y con ello podremos hacer scrool en nuestra pantalla: 
+2- Ojo! Los scroll view no pueden tener mas de un hijo. Por ello todas las views están dentro del "RelativeLayout"
+3- Y es el RelativeLayout el que va a ser el hijo del "ScrollView"
+4- Advertencia: El hijo de un ScrollView debe necesariamente tener el "layout_height="wrap_content"
+
+5- Problema: El botón se nos subió y nosotros lo queremos abajo. 
+
+6- Solución: Creamos otra RelativeLayout que contenga al ScroolView con todos sus componentes y luego el boton
+
+-------------------------------
+
+Sección 5: RecyclerViews
+
+Proyecto: Earthquake Monitor. 
+
+Novedades: Listas (de los views mas usados en Android), traer datos desde un servidor en internet (una api rest), vamos a sumarle a nuestra app una base de datos para que incluso en modo avion o sin internet nuestra app funcione.
+
+RecyclerView vino a reemplazar de Android Lollipop en adelante a las list views. Son de los views mas utilizados.
+Ej de RecyclerView: las listas de chats y conversaciones de Wathapp. 
+
+Tipos de layout para el RecyclerView: LinearLayoutManager, GridLayoutManager y Staggered GridLayoutManager
+
+Pasos: 
+
+1- Agrego a mi archivo build.gradle la implementación de "implementation 'androidx.recyclerview:recyclerview:1.3.0'" y agrego tambien la configuración para usar el dataBinding: 
+
+    buildFeatures {
+        dataBinding true
+    }
+
+2- Convierto mi activity_main.xml en un dataBinding usando las sugerencias de Android Studio. 
+
+3- Reemplazo mi constraintlayout por un FrameLayout en el xml que va a quedar como padre de todo y dentro del mismo armo un "recyclerview"
+
+Debería ir quedando así: 
+
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+        <androidx.recyclerview.widget.RecyclerView
+		android:id="@+id/eq_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+    </FrameLayout>
+</layout>
+
+Le damos un id y ya tenemos nuestro recyclerview creado. 
+
+4- Creamos un "new" -> Layout Resource File con boton derecho sobre la carpeta de "layout"
+5- Lo configuramos como: 
+File name: eq_list_item
+Root element (padre de todo este layout): RelativeLayout
+
+Aquí ira el diseño del layout de cada uno de nuestros elementos de la lista creada con el recyclerview. 
+
+Truco: Ojo que por defecto el layout que creamos viene como "android:layout_height="match_parent"" y debemos cambiarlo a wrap_content
+
+Ahora vamos a armarlo agregando los views, que van a ser 2 text views y 1 img view: 
+
+¿Por que Relative Layout en lugar de una Linear Layout horizontal? Porque con el Linear, que suena mas logico para cada uno de los casilleros de mi lista no va a cuadrar bien. Conviene entonces hacerlo con un relative. 
+
+Truco para trabajar con iconos: Buscarlos en Google Fonts <https://fonts.google.com/icons?selected=Material+Icons:chevron_right:&icon.query=arrow> y descargarlos en SVG. Ejemplo la flecha "chevron_right"
+
+Luego la importamos desde Android Studio haciendo click derecho en drawable, seleccionamos "new" -> Vector Asset e importamos el archivo descargado desde la opción de "Local file (SVG, PSD)" tildada. 
+
+Aparece en nuestra carpeta de drawable y ya la podemos linkear en nuestro layout usando android:src="@drawable/nombre_del_icon"
+
+Cambio el color y el nombre con el que lo importe para dejarlo gris como me pide el diseño y listo! Ya tengo la lista y el modelo de elemento de la lista. 
+
+Así debería quedar mi layout activity_main: 
+
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/eq_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+    </FrameLayout>
+</layout>
+
+Así debería quedar mi layout para cada elemento de mi lista: 
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <TextView
+        android:id="@+id/eq_magnitude_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        tools:text="4.3"
+        />
+
+    <ImageView
+        android:id="@+id/eq_arrow_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/ic_chevron_right_gray"
+        />
+
+    <TextView
+        android:id="@+id/eq_place_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:textColor="@color/black"
+        android:layout_toStartOf="@id/eq_arrow_image"
+        android:layout_toEndOf="@id/eq_magnitude_text"
+        android:textSize="20sp"
+        tools:text="80 Km E NY"
+         />
+
+
+
+</RelativeLayout>
+
+Y así mi configuración del icono modificado: 
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M10,6L8.59,7.41 13.17,12l-4.58,4.59L10,18l6,-6z"
+      android:fillColor="@android:color/darker_gray"/>
+</vector>
+
+---------------------------------------------------------------
+
+Desafio: Cada elemento de mi lista va a tener un Terremoto. Por lo que debo crear una clase terremoto con sus atributos "magnitud", "lugar", "coordenadas", etc para luego poder trabajar con el mismo en mi app. 
+
+Para mostrar cada terremoto lo vamos a hacer con algo que se llama adapter. 
+
+1- Creo una clase llamada Earthquake
+2- Creo entre parentesis sus atributos o "campos" del terremoto. 
+Truco: las variables de tiempo o timestamp se deben trabajar como de tipo "Long". Luego veremos como trabajar las variables de tipo Long para llevarlas a un formato que nosotros podamos leer. 
+
+Así debe quedar mi clase Earthquake: 
+
+package com.mgobeaalcoba.earthquakemonitor
+
+data class Earthquake(
+    val id: String,
+    val place: String,
+    val magnitude: Double,
+    val time: Long,
+    val longitude: Double,
+    val latitude: Double ) 
+
+Y así debe quedar mi archivo MainActivity: 
+
+package com.mgobeaalcoba.earthquakemonitor
+
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Establezco la relación con mi dataBinding:
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Establezco el tipo de Layout con el que voy a repetir mis elementos en la lista:
+        binding.eqRecycler.layoutManager = LinearLayoutManager(this)
+
+        // Creo una lista vacia donde voy a ir cargando los terremotos que voy a mostrar
+        val eqList =  mutableListOf<Earthquake>()
+
+        // Hardcodeo mi lista vacia para que tenga elementos que mostrar:
+        eqList.add(Earthquake("1","Buenos Aires",4.3,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("2","Lima",2.9,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("3","Ciudad de México",6.0,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("4","Bogotá",4.1,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("5","Caracas",2.5,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("6","Madrid",3.3,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("7","Acra",6.3,275349574L, -102.4756, 28.47365))
+
+
+    }
+}
+
+------------------------------------
+
+Vamos ahora a crear un adapter para mostrar en el recycler view cada uno de nuestros terremotos: 
+
+1- Creo una nueva clase llamada EqAdapter que va a adaptar los terremotos al recyclerview. 
+2- Esta clase debe heredar de otra clase que ya viene de androidx y se llama ListAdapter<Earthquake, EqAdapter.ViewHolder>()
+3- Con esta parte escrita vamos a pararnos sobre EqAdapter y vamos a presionar sobre "implement members" lo que nos cargará done metodos para esa clase.
+
+Advertencia: cuando uno selecciona el ListAdapter tiene que tener el cuidado de seleccionar el que pide los argumentos, lo dejo por si alguien experimento el mismo problema.
+hay que revisar que el import del adapter este igual en mi caso ese era el problema.
+"import androidx.recyclerview.widget.ListAdapter"
+
+En el menú de implement members debemos seleccionar ambos metodos y darle ok. Y nos crea los 2 metodos que todos los adapters deben tener si o si. onCreateViewHolder y onBindViewHolder. 
+
+Luego voy a crear una inner class dentro de mi clase EqAdapter a la que voy a llamar EqViewHolder. A este viewHolder le vamos a pasar una view que va a ser el layout de nuestro elemento de la lista padre. 
+
+Ahora lo estamos haciendo sin dataBinding. Pero luego lo vamos a transformar a dataBinding. 
+
+Así debería quedar el adapter modelo... Dsp hay que modificar los objetos del proyecto y las views a completar: 
+
+package com.mgobeaalcoba.earthquakemonitor
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+
+class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) {
+
+    companion object DiffCallback : DiffUtil.ItemCallback<Earthquake>() {
+        override fun areItemsTheSame(oldItem: Earthquake, newItem: Earthquake): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Earthquake, newItem: Earthquake): Boolean {
+            return oldItem == newItem
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EqAdapter.EqViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.eq_list_item, parent,
+            false)
+        return EqViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: EqAdapter.EqViewHolder, position: Int) {
+        val earthquake = getItem(position)
+        holder.magnitudeText.text = earthquake.magnitude.toString()
+        holder.placeText.text = earthquake.place
+    }
+
+    inner class EqViewHolder(val view: View): RecyclerView.ViewHolder(view) {
+        // Mencionamos todas las views que va a mantener o a guardar ese viewHolder que son
+        // los dos textView y la imageView no la traemos porque no tenemos que hacer nada con ella.
+        // solo la mostramos en cada elemento de la lista.
+        val magnitudeText = view.findViewById<TextView>(R.id.eq_magnitude_text)
+        val placeText = view.findViewById<TextView>(R.id.eq_place_text)
+    }
+}
+
+Luego de esto vuelvo al main y allí debo crear un adapter, pasarle el adapter al binding y finalmente le paso a mi adapter la lista de valores que debe replicar y cargar. La lista pasada puede ser un List normal o un MutableList sin problema. 
+
+así me va a quedar entonces mi MainActivity: 
+
+package com.mgobeaalcoba.earthquakemonitor
+
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Establezco la relación con mi dataBinding:
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Establezco el tipo de Layout con el que voy a repetir mis elementos en la lista:
+        binding.eqRecycler.layoutManager = LinearLayoutManager(this)
+
+        // Creo una lista vacia donde voy a ir cargando los terremotos que voy a mostrar
+        val eqList =  mutableListOf<Earthquake>()
+
+        // Hardcodeo mi lista vacia para que tenga elementos que mostrar:
+        eqList.add(Earthquake("1","Buenos Aires",4.3,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("2","Lima",2.9,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("3","Ciudad de México",6.0,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("4","Bogotá",4.1,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("5","Caracas",2.5,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("6","Madrid",3.3,275349574L, -102.4756, 28.47365))
+        eqList.add(Earthquake("7","Acra",6.3,275349574L, -102.4756, 28.47365))
+
+        // Con el objeto adapter creado debo instanciar un adapter:
+        val adapter = EqAdapter()
+        // Asigno el adapter a mi data binding:
+        binding.eqRecycler.adapter = adapter
+        // Le paso al adapter la lista de valores que debe replicar y cargar:
+        adapter.submitList(eqList)
+
+    }
+}
+
+Ahora si podemos ejecutar la app por primera vez y ver un listado cargado. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
