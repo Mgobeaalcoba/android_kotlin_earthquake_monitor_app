@@ -2,6 +2,7 @@ package com.mgobeaalcoba.earthquakemonitor
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
 
@@ -34,6 +35,14 @@ class MainActivity : AppCompatActivity() {
         binding.eqRecycler.adapter = adapter
         // Le paso al adapter la lista de valores que debe replicar y cargar:
         adapter.submitList(eqList)
+
+        // Declaramos que queremos mostrar nuestra "Empty view" solo si la lista de earthquakes está vacia.
+        // Caso contrario mantenemos su visibilidad en "GONE".
+        if (eqList.isEmpty()) {
+            binding.eqEmptyView.visibility = View.VISIBLE
+        } else {
+            binding.eqEmptyView.visibility = View.GONE
+        }
 
     }
 }

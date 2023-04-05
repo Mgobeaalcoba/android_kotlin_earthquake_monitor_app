@@ -1026,6 +1026,24 @@ class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) 
 
 Agregando un empty view para el RecyclerView
 
+¿Por que insertamos un FrameLayout arriba de nuestro RecyclerView en el ActivityMain? 
+
+Vamos a poner dentro del FrameLayout el RecyclerView que ya creamos junto con un EmptyView con un mensaje para cuando la lista esté vacia. Entonces, vamos a hacer que, si la lista no tiene contenido entonces se muestra el EmptyView. Pero si la lista tiene contenido entonces alterna y muestra el RecyclerView. 
+
+Veamos entonces... 
+
+Un empty view puede ser un text view, un button, un image view, etc. 
+
+android:visibility="gone" --> Atributo clave para declarar un empty view
+
+Luego vamos al empty view y le vamos a decir que si la lista de terremotos está vacia muestre el empty view. Pero si tiene al menos un elemento entonces muestra el recycler. 
+
+Truco de productividad: Ctrl + / (del teclado numerico) para comentar multiples lineas
+
+Si comentamos las lineas de codigos de terremotos comprobamos que efectivamente vemos el Empty View!!!
+
+
+
 
 
 
