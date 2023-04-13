@@ -3,6 +3,7 @@ package com.mgobeaalcoba.earthquakemonitor
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
 
@@ -35,6 +36,11 @@ class MainActivity : AppCompatActivity() {
         binding.eqRecycler.adapter = adapter
         // Le paso al adapter la lista de valores que debe replicar y cargar:
         adapter.submitList(eqList)
+
+        // Codigo en MainActivity para encender el onClickListener sobre los items de la lista:
+        adapter.onItemClickListener = {
+            Toast.makeText(this, it.place, Toast.LENGTH_SHORT).show() // probamos que funcione el on click listener
+        }
 
         // Declaramos que queremos mostrar nuestra "Empty view" solo si la lista de earthquakes está vacia.
         // Caso contrario mantenemos su visibilidad en "GONE".

@@ -1,13 +1,17 @@
 package com.mgobeaalcoba.earthquakemonitor
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ExpandableListView.OnChildClickListener
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.mgobeaalcoba.earthquakemonitor.databinding.EqListItemBinding
+
+private val TAG = EqAdapter::class.java.simpleName
 
 class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) {
 
@@ -20,6 +24,9 @@ class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) 
             return oldItem == newItem
         }
     }
+
+    // Lambda para escuchar los clicks sobre los elementos de mi lista:
+    lateinit var  onItemClickListener: (Earthquake) -> Unit
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EqAdapter.EqViewHolder {
         // El binding en los adapter se carga de forma algo distinta. Cambia el contenido del .inflate():
@@ -58,6 +65,16 @@ class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) 
         fun bind(earthquake: Earthquake) {
             binding.eqMagnitudeText.text = earthquake.magnitude.toString()
             binding.eqPlaceText.text = earthquake.place
+
+            // binding.root es el layout completo. Por lo que voy a escuchar los clicks en el mismo.
+            binding.root.setOnClickListener {
+                if (::onItemClickListener.isInitialized) {
+                    onItemClickListener(earthquake)
+                } else {
+                    Log.e(TAG, "onItemClickListener not initialized")
+                }
+            }
+            binding.executePendingBindings()
         }
     }
 }
