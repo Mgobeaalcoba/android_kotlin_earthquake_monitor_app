@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Earthquake Monitor</string>
+    <string name="no_earthquakes_right_now">Sin terremotos en este momento</string>
+</resources>
