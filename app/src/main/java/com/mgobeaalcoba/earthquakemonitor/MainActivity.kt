@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         // Con el objeto adapter creado debo instanciar un adapter:
-        val adapter = EqAdapter()
+        val adapter = EqAdapter(this)
         // Asigno el adapter a mi data binding:
         binding.eqRecycler.adapter = adapter
 

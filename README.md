@@ -269,6 +269,384 @@ class MainViewModel: ViewModel() {
 
 Las dos formas de trabajar con corrutinas conviven en la actualidad. Esta forma última solo sirve si encendemos las corrutinas en nuestro viewModel. Pero si lo hacemos en otra clase necesariamente debemos trabajar las corrutinas con la primera forma. 
 
+-----------------
+
+Ahora debemos reemplazar nuestra lista hardcodeada por la lista que traemos desde la API. 
+
+Consideraciones: 
+
+1- Como el metodo de service para la request "GET" lo estamos llamando desde dentro de una corrutina debemos agregarle el suspend al mismo. Así: 
+
+```kotlin
+interface EqApiService {
+    // Aquí podría agregar todos tipos de request que quisiera. En este caso solo voy a usar el GET.
+    @GET("all_hour.geojson")
+    suspend fun getLastHourEarthquakes(): String
+}
+```
+
+Luego en nuestro AndroidManifest que es donde van nuestros permisos debemos darle a la app el permiso para que el usuario acceda a internet agregando lo siguiente antes de <application...>: 
+
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
+```
+
+Luego vamos a modificar el hardcodeo de nuestro lista en el metodo fetch... para traer los terremotos desde la API. Recordemos acá que los vamos a traer en formato String por lo que debemos transformarlos a una MutableList para poder usarlos y pintarlos. 
+
+**Friendly Reminder:** Lo ultimo que escribimos dentro de una corrutina será lo que devolverán.  
+
+Este String que recibimos en realidad es JSON. Solo que como tal no es un dato nativo de Kotlin. Una vez que visualizamos que el JSON esté viniendo como queremos (podemos usar un Log.d y luego ver lo que nos trae a traves del Logcat). Con este JSON lo que ahora debemos hacer es "PARSEARLO" para convertirlo en objetos terremotos dentro de una mutable list. 
+
+### Componentes de un JSON Object: 
+
+- Otros JSON Objects
+- JSON Arrays
+- Elementos (de diversos tipos como Double, Int, String, Bool, etc)
+
+**¿Como parseamos entonces?**  
+
+Usando un metodo para esta tarea que vamos a crear y recurriendo a alguna librería (todos los lenguajes la tienen) que nos permita realizar este parseo de forma simple y en pocas lineas. 
+
+Dentro de mi JSON obtenido y parseado voy a encontrar una parte que se llama "features" y dentro del mismo van a estar las properties que necesito para crear mis objetos terremos. Debo entonces acceder a las mismas para construir mis objetos. 
+
+Como estoy trayendo mas de un terremoto. Traigo todos los ocurridos en la ultima hora. Entonces debo armar un array de terremotos o de mis features de terremotos. 
+
+Debemos observar con detenimiento como están encadenados los json object dentro de la respuesta de la API. Dado que en función de esto es que vamos a poder obtener la información que necesitamos. 
+
+Por ejemplo. El valor "id" del terremoto viene dentro del JSON object "features" pero el valor "place", "time" y otros vienen dentro del JSON object "properties" que es un sub objeto dentro del objeto features. 
+
+
+```kotlin
+class MainViewModel: ViewModel() {
+    // Migramos la lista de terremotos como Mutable live data:
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+
+    // Creamos también el LiveData que sea "pareja" de nuestro mutable live data de arriba
+    // Esta variable es la que voy a observar desde el main activity para que cuando cambie pinte
+    // los cambios ocurridos en nuestra activity:
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    init {
+        // Lanzo la corrutina principal y dentro de ella una secundaria del tipo IO para armar mi lista.
+        // La corrutina secundaria debe devolverle a la corrutina primaria la lista de terremotos al
+        // finalizar su ejecución.
+        viewModelScope.launch {
+            _eqList.value = fetchEarthquakes()
+        }
+    }
+
+    private suspend fun fetchEarthquakes(): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+            // Guardo en String lo que viene de la API.
+            val eqListString =  service.getLastHourEarthquakes()
+            // Transitoriamente voy a visualizar que es lo que viene con un Log.d:
+            // Log.d("TEST_API", eqListString)
+            // Invoco mi función para "parsear" mis datos JSON/String obtenidos de la API:
+            val eqList = parseEqResult(eqListString)
+            eqList
+        }
+    }
+
+    private fun parseEqResult(eqListString: String): MutableList<Earthquake> {
+        // Convierto mi String en un JSON Object:
+        val eqJsonObject = JSONObject(eqListString)
+
+        // Armo entonces un array de las "features" que vienen en mi json para luego armar terremotos
+        val featuresJsonArray = eqJsonObject.getJSONArray("features")
+
+        // Armo la lista vacia que luego de completar voy a devolver:
+        val eqList = mutableListOf<Earthquake>()
+
+        // Itero mi arreglo para armar mis featuresJsonObject que luego serán la base de mis terremotos:
+        for (i in 0 until featuresJsonArray.length()) {
+            val featuresJsonObject = featuresJsonArray[i] as JSONObject
+            // Ya tenemos el primer objetoJSON separado por lo que podemos ir guardando su información para
+            // luego contruir nuestro objeto:
+            val id = featuresJsonObject.getString("id")
+
+            // magnitude, places, time,etc están dentro de un sub objeto de features
+            val propertiesJsonObject = featuresJsonObject.getJSONObject("properties")
+            val magnitude = propertiesJsonObject.getDouble("mag")
+            val place = propertiesJsonObject.getString("place")
+            val time = propertiesJsonObject.getLong("time")
+
+            // Finalmente longitude y latitude están dentro de otro sub objeto de features
+            val geometryJsonObject = featuresJsonObject.getJSONObject("geometry")
+            val coordinatesJsonArray = geometryJsonObject.getJSONArray("coordinates")
+            val longitude = coordinatesJsonArray.getDouble(0)
+            val latiitude = coordinatesJsonArray.getDouble(1)
+
+            val earthquake = Earthquake(id,place,magnitude,time,longitude,latiitude)
+            eqList.add(earthquake)
+        }
+        return eqList
+    }
+```
+
+Esta es entonces una de las formas en la que podemos traernos información desde internet directamente usando **retrofit**. 
+
+Veamos ahora otra alternativa para parsear JSON: 
+
+------------------------------
+
+**Moshi:** (Existe otra que se llama Gson y es muy similar)
+
+Moshi en lugar de obtener de la API un String nos va a devolver directamente un objeto JSON. 
+
+Para agregarlo lo primero es sumar la implementation en build:gradle: 
+
+```xml
+implementation 'com.squareup.retrofit2:converter-moshi:2.5.0'
+```
+
+Luego vamos a cambiar la configuración de nuestro EqApiService. 
+
+Habiamos setiado el addConverterFactory para que convierta a String la respuesta de la API a la que le pegamos. 
+
+Ahora debemos cambiar esa config para que sea Moshi el que ocupe su lugar así: 
+
+```kotlin
+interface EqApiService {
+    @GET("all_hour.geojson")
+    suspend fun getLastHourEarthquakes(): EqJsonResponse
+}
+
+private var retrofit = Retrofit.Builder()
+    .baseUrl("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/")
+    .addConverterFactory(MoshiConverterFactory.create())
+    .build()
+
+var service: EqApiService = retrofit.create(EqApiService::class.java)
+```
+
+Luego armomos una clase que nos sirva para recibir lo que Moshi nos devuelve. 
+
+La llamaremos EqJsonresponse: 
+
+En ella vamos a declarar los parametros de la respuesta de la API pero solo los que necesitamos. En este caso por ejemplo no nos sirve agregar el parametro de la respuesta llamado "bbox" o "metadata"
+
+Por cada parametro que quiero recibir voy a armar una clase para recibirlo como parametro de mi class EqJsonResponse dentro de una lista: 
+
+Dentro del objeto/parametro feature que es uno de los que vamos a recibir por ejemplo tengo que seleccionar también que parametros del mismo van a conformar el objeto porque luego serán usados para conformar mi Json con Moshi: 
+
+Quedarían conformados entonces las siguientes clases: 
+
+- EqJsonResponse: 
+```kotlin
+class EqJsonResponse(val features: List<Feature>)
+```
+- Feature:
+```kotlin
+class Feature(val id: String, val properties: Properties, val geometry: Geometry)
+```
+- Properties:
+```kotlin
+class Properties(val mag: Double, val place: String, val time: Long)
+```
+- Geometry:
+```kotlin
+class Geometry(val coordinates: Array<Double>) {
+    // Uso getters para obtener los valores del array que recibo en el JSON.
+    val longitude: Double
+        get() = coordinates[0]
+
+    val latitude: Double
+        get() = coordinates[1]
+}
+```
+
+Y ahora con Moshi instalado podemos hacer que el resultado de la request GET venga directamente como EqJsonResponse que es el otro cambio que le hicimos al EqApiService arriba.
+
+Luego vamos a modificar nuestra función de parseEqResult dado que ya no recibiremos un string sino un EqJsonResponse para que quedé así nuestro ViewModel: 
+
+```kotlin
+class MainViewModel: ViewModel() {
+
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    init {
+        viewModelScope.launch {
+            _eqList.value = fetchEarthquakes()
+        }
+    }
+
+    private suspend fun fetchEarthquakes(): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+            val eqList = service.getLastHourEarthquakes()
+            parseEqResult(eqList)
+        }
+    }
+
+    private fun parseEqResult(eqJsonResponse: EqJsonResponse): MutableList<Earthquake> {
+        // Armo la lista vacia que luego de completar voy a devolver:
+        val eqList = mutableListOf<Earthquake>()
+
+        // Obtengo los distintos features de mi eqJsonResponse
+        val featureList = eqJsonResponse.features
+
+        // Ahora convertimos nuestro objeto EqJsonResponse en Terremotos así:
+        for (feature in featureList) {
+            val id = feature.id
+            val place = feature.properties.place
+            val magnitude = feature.properties.mag
+            val time = feature.properties.time
+            val longitude = feature.geometry.longitude
+            val latitude = feature.geometry.latitude
+            val earthquake = Earthquake(id, place, magnitude, time, longitude,latitude)
+            eqList.add(earthquake)
+        }
+        return eqList
+    }
+}
+```
+
+**Importante:** para que Moshi funcione los nombres de los atributos de las clases que construimos con el fin de recibir el objeto en formato JSON deben ser exactamente los mismos que como están escritos en el JSON de la API a la que le estamos pegando.  
+
+Pero existe una forma de trabajarlo con un nombre diferente como por ejemplo "magnitude". Para ello debemos agregar antes de nuestro atributo un "@Json(name="mag")" y luego definir la variable como queramos. por ejemplo así: 
+
+```kotlin
+import com.squareup.moshi.Json
+
+class Properties(@Json(name = "mag") val magnitude: Double, val place: String, val time: Long)
+```
+
+------------------------
+
+Muy bien. Ya tenemos entonces nuestra **Activity**, tenemos nuestro **ViewModel** y tenemos nuestro **Remote Data Source** al que conectamos con un **webservice** usando **Retrofit**
+
+¿Que nos falta para respetar nuestra **arquitectura MVVM**?
+
+- Debemos crear nuestro **Repository** (Vamos a hacerlo ahora). El objetivo del repositorio recordemos que es que nuestros datos lleguén al ViewModel siempre desde una única fuente (El Repository)
+
+- Debemos crear nuestro **Model** (Lo haremos luego junto con la conexión con nuestra base de datos.)
+
+### Recordemos nuestro diagrama MVVM nuevamente: 
+
+![Captura 1](images/screen_1.png)
+
+1- Creamos en nuestro unico paquete una clase a la que llamaremos MainRepository
+
+2- Pasamos todo el codigo de conexión y transformación de los datos con el servicio web que usamos (La API) a nuestro repository quitandolo de nuestro ViewModel
+
+3- Convierto mis metodos/funciones que eran privados en publicos dado que serán llamados desde nuestro ViewModel
+
+4- Creo un objeto repositorio en mi ViewModel
+
+5- Uso el metodo publico de mi repositorio desde mi ViewModel
+
+El ViewModel nos queda así: 
+
+```kotlin
+class MainViewModel: ViewModel() {
+
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    private val repository = MainRepository()
+
+    init {
+        viewModelScope.launch {
+            _eqList.value = repository.fetchEarthquakes()
+        }
+    }
+}
+```
+
+El MainRepository nos queda así: 
+
+```kotlin
+class MainRepository {
+    suspend fun fetchEarthquakes(): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+            val eqJsonResponse = service.getLastHourEarthquakes()
+            val eqList = parseEqResult(eqJsonResponse)
+            eqList
+        }
+    }
+
+    private fun parseEqResult(eqJsonResponse: EqJsonResponse): MutableList<Earthquake> {
+        // Armo la lista vacia que luego de completar voy a devolver:
+        val eqList = mutableListOf<Earthquake>()
+
+        // Obtengo los distintos features de mi eqJsonResponse
+        val featureList = eqJsonResponse.features
+
+        // Ahora convertimos nuestro objeto EqJsonResponse en Terremotos así:
+        for (feature in featureList) {
+            val id = feature.id
+            val place = feature.properties.place
+            val magnitude = feature.properties.magnitude
+            val time = feature.properties.time
+            val longitude = feature.geometry.longitude
+            val latitude = feature.geometry.latitude
+            val earthquake = Earthquake(id, place, magnitude, time, longitude,latitude)
+            eqList.add(earthquake)
+        }
+        return eqList
+    }
+}
+```
+
+Ahora es la clase MainRepository la que se encarga de comunicarse con nuestro web service y en un futuro será la misma clase la que se comunique con nuestras bases de datos. 
+
+Finalmente vamos a setear el formato en el que queremos que se nos muestre la magnitud de los terremotos dado que vienen algunos con multiples decimales y yo solo quiero 2 de ellos. 
+
+Lo primero es crear un formato en strings.xml con el que forzamos a un número float o double a ser de dos decimales:
+
+```xml
+<string name="magnitude_format">%.2f</string>
+```
+
+Luego en EqAdapter, cuando insertamos la magnitud, vamos a cambiar esto:
+
+```kotlin
+binding.eqMagnitudeText.text = earthquake.magnitude.getString()
+```
+Por esto: 
+
+```kotlin
+binding.eqMagnitudeText.text = context.getString(R.string.magnitude_format, earthquake.magnitude)
+```
+
+Pero observando detenidamente vamos que se necesita un context para usar el getString, entonces en el constructor de EqAdapter agregaremos un context así:
+
+```koltin
+class EqAdapter(private val context: Context): ...
+```
+
+Finalmente, desde MainActivity, pasamos el context al adapter así:
+
+```koltin
+val adapter = EqAdapter(this)
+```
+
+Y listo. Tenemos seteados los Double de la magnitud con 2 decimales solamente. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

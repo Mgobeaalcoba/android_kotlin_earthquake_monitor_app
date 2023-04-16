@@ -1,5 +1,6 @@
 package com.mgobeaalcoba.earthquakemonitor
 
+import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,7 +14,7 @@ import com.mgobeaalcoba.earthquakemonitor.databinding.EqListItemBinding
 
 private val TAG = EqAdapter::class.java.simpleName
 
-class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) {
+class EqAdapter(private val context: Context) : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) {
 
     companion object DiffCallback : DiffUtil.ItemCallback<Earthquake>() {
         override fun areItemsTheSame(oldItem: Earthquake, newItem: Earthquake): Boolean {
@@ -63,7 +64,7 @@ class EqAdapter : ListAdapter<Earthquake, EqAdapter.EqViewHolder>(DiffCallback) 
          */
 
         fun bind(earthquake: Earthquake) {
-            binding.eqMagnitudeText.text = earthquake.magnitude.toString()
+            binding.eqMagnitudeText.text = context.getString(R.string.magnitude_format, earthquake.magnitude)
             binding.eqPlaceText.text = earthquake.place
 
             // binding.root es el layout completo. Por lo que voy a escuchar los clicks en el mismo.
