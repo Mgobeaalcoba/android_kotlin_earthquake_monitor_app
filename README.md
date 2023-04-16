@@ -193,6 +193,84 @@ Luego por fuera de la corrutina IO pero dentro de la corrutina Main voy a actual
 
 Hecho esto la obtencion de la información, que por el momento está hardcodeada se va a realizar en backgorund y la asignación de esa información al LiveData para luego pintarla en pantalla se realizará en el Main Thread. 
 
+Esto mismo podriamos hacerlo usando un metodo para llevar adelante el cargado dentro del scope de la corrutina IO así: 
+
+init{}
+
+```kotlin
+    init {
+        // Lanzo la corrutina principal y dentro de ella una secundaria del tipo IO para armar mi lista.
+        // La corrutina secundaria debe devolverle a la corrutina primaria la lista de terremotos al
+        // finalizar su ejecución.
+        coroutineScope.launch {
+            _eqList.value = fetchEarthquakes()
+        }
+    }
+```
+
+private **suspend** fun fetchEarthquakes() {}
+
+```kotlin
+    private suspend fun fetchEarthquakes(): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+            val eqList =  mutableListOf<Earthquake>()
+
+            // Hardcodeo mi lista vacia para que tenga elementos que mostrar:
+            eqList.add(Earthquake("1","Buenos Aires",4.3,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("2","Lima",2.9,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("3","Ciudad de México",6.0,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("4","Bogotá",4.1,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("5","Caracas",2.5,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("6","Madrid",3.3,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("7","Acra",6.3,275349574L, -102.4756, 28.47365))
+
+            eqList
+        }
+    }
+```
+
+La regla es que si utilizamos withContext() y el mismo no está dentro de una corrutina sino en un metodo. El mismo debe ser declarado como private **suspend** fun para que pueda ejecutarse
+
+Todo esto está muy bien pero, en la actualidad existe una forma mucho mas sencilla de armar nuestras corrutinas dentro del ViewModel y sae hace con "viewModelScope" en reemplazando todo el codigo del job y el coroutineScope así como también la función para detener el job al cerrar el ViewModel.
+
+El codigo de nuestro viewModel finalmente quedaría así: 
+
+```kotlin
+class MainViewModel: ViewModel() {
+
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    init {
+        viewModelScope.launch {
+            _eqList.value = fetchEarthquakes()
+        }
+    }
+
+    private suspend fun fetchEarthquakes(): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+            val eqList =  mutableListOf<Earthquake>()
+
+            eqList.add(Earthquake("1","Buenos Aires",4.3,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("2","Lima",2.9,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("3","Ciudad de México",6.0,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("4","Bogotá",4.1,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("5","Caracas",2.5,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("6","Madrid",3.3,275349574L, -102.4756, 28.47365))
+            eqList.add(Earthquake("7","Acra",6.3,275349574L, -102.4756, 28.47365))
+
+            eqList
+        }
+    }
+}
+```
+
+Las dos formas de trabajar con corrutinas conviven en la actualidad. Esta forma última solo sirve si encendemos las corrutinas en nuestro viewModel. Pero si lo hacemos en otra clase necesariamente debemos trabajar las corrutinas con la primera forma. 
+
+
+
 
 
 
