@@ -50,5 +50,8 @@ class MainActivity : AppCompatActivity() {
             binding.eqEmptyView.visibility = View.GONE
         }
 
+        // Me conecto desde el main con la API de terremotos.
+        service.getLastHourEarthquakes()
+
     }
 }
