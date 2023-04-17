@@ -656,6 +656,12 @@ Todo estará dentro de "com.mgobeaalcoba.earthquake":
 
 ---------------------------
 
+**¿Que es Room?** 
+
+Es una librería que nos va a permitir implementar bases de datos para Android. Es la forma recomendada para hacerlo. 
+
+Room funciona ensima de SQL y nos va a facilitar bastante el uso de SQL. 
+
 Para usar Room (Librería de base de datos) necesitarás las siguientes dependencias, agrégalas a tu archivo build.gradle (App):
 
 ```kotlin
@@ -663,6 +669,32 @@ implementation 'androidx.room:room-runtime:2.2.5'
 
 kapt 'androidx.room:room-compiler:2.2.5'
 ```
+
+¿Como comenzamos entonces a trabajar con Room? 
+
+1- Las clases que vayamos a guardar en nuestra base de datos deben ser "data class" 
+
+2- Debemos agregarle a nuestras data class que vayamos a guardar una anotación arriba del tipo **@Entity(tablename = "nombre_tabla")**
+
+3- Agrego una anotación de @PrimaryKey a aquel atributo de nuestra clase que será el "id" de nuestra tabla. **@PrimaryKey**
+
+Quedaría así nuestra clase: 
+
+```kotlin
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "earthquakes")
+data class Earthquake(
+    @PrimaryKey val id: String,
+    val place: String,
+    val magnitude: Double,
+    val time: Long,
+    val longitude: Double,
+    val latitude: Double )
+```
+
+
 
 
 
