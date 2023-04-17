@@ -626,6 +626,46 @@ val adapter = EqAdapter(this)
 
 Y listo. Tenemos seteados los Double de la magnitud con 2 decimales solamente. 
 
+-------------------------
+
+**¿Como estructuramos nuestra clases para que queden bien acomodadas y respeten una estructura de "Clean Code"?**
+
+No se debe acomodar todas las activities en una carpeta llamada activities y todos los adaptar en una llamada adapter sino que por el contrario es mejor acomodar nuestras clases/archivos por "features"
+
+Todo estará dentro de "com.mgobeaalcoba.earthquake": 
+
+- api
+  - EqApiService.kt
+  - EqJsonResponse.kt
+  - Feature.kt
+  - Geometry.kt
+  - Properties.kt
+- main
+  - MainActivity.kt
+  - EqAdapter.kt
+  - MainViewModel.kt
+  - MainRespository.kt
+- database
+- Earthquake.kt
+
+**Criterio para cuando sumamos nuevas pantallas:** 
+
+- Solo tendremos un paquete de API y un paquete de Databases. En el mismo sumaremos todas las conexiones y request necesarias. Puede ser para pegarle a una API o a muchas API´s. A una databases o a muchas databases. 
+- Por cada pantalla de nuestra app si tendremos un paquete para esa pantalla y en el mismo tendremos su propio MainActivity, su propio MainViewModel y su propio MainRepository. Si es necesario (si tiene recycler views) entonces también su propio adapter. 
+- Una activity también podría tener distintos fragments. Pero eso lo desarrollamos luego. 
+
+---------------------------
+
+Para usar Room (Librería de base de datos) necesitarás las siguientes dependencias, agrégalas a tu archivo build.gradle (App):
+
+```kotlin
+implementation 'androidx.room:room-runtime:2.2.5'
+
+kapt 'androidx.room:room-compiler:2.2.5'
+```
+
+
+
 
 
 

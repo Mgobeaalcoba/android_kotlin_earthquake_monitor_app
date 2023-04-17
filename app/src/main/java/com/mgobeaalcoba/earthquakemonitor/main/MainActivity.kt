@@ -1,12 +1,13 @@
-package com.mgobeaalcoba.earthquakemonitor
+package com.mgobeaalcoba.earthquakemonitor.main
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.mgobeaalcoba.earthquakemonitor.Earthquake
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
