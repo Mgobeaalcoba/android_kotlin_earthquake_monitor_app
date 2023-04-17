@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
 
 @Database(entities = [Earthquake::class], version = 1)
-abstract class EqDatabase: RoomDatabase {
+abstract class EqDatabase: RoomDatabase() {
     // Declaramos el eqDao pero no lo vamos a usar acá sino en el MainRepository:
     abstract val eqDao: EqDao
 }
