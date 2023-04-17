@@ -694,6 +694,70 @@ data class Earthquake(
     val latitude: Double )
 ```
 
+--------------------------
+
+DAO´s = Interface que nos va a ayudar a insertar y tomar datos de nuestra database. 
+
+DAO significa = Data Access Object
+
+1- El DAO se crea dentro del package "database".
+
+2- Debe ser una Interface de con nombre del tipo "EqDao"
+
+3- Le agregamos a nuestra interface EqDao la anotación @Dao
+
+4- Dentro de la interface van a estar todos los metodos que nos van a permitir manipular los datos.
+
+5- Por tal motivo debe haber un @Dao por cada @Entity
+
+6- En este caso vamos a hacer un metodo para insertar terremotos (los que descargamos de la API) y otro para traer de nuestra base de datos los terremotos de nuestra base
+
+7- Agrego un @Insert arriba de la función que reciba los datos a insertar. En este caso la func se llama insertAll y recibe una lista de Earquakes. 
+
+8- Cuando tengamos que insertar un elemento con un id que ya existe en nuestra base de datos debemos detallar en el parentesis del insert () que hay que hacer así @Insert(onConflict = OnConflictStrategy.REPLACE)
+
+9- Luego vamos a armar el metodo para obtener todos y eso lo hacemos con la anotación @Query que lleva entre parentesis la Query que queremos consultar y traer. 
+
+10- Tambien existen las anotaciones @Update y @Delete para actualizar datos o eliminarlos respectivamente. 
+
+**Truco:** Con (vararg variable: tipo) puedo declarar que voy a pasar o 1 objeto o una lista de objetos de la clase señalada. 
+
+Así quedaría entonces nuestro EqDao: 
+
+```kotlin
+package com.mgobeaalcoba.earthquakemonitor.database
+
+import androidx.room.*
+import com.mgobeaalcoba.earthquakemonitor.Earthquake
+
+@Dao
+interface EqDao {
+
+    // Metodo para insertar terremotos:
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(eqList: MutableList<Earthquake>)
+
+    // Metodo para obtener terremotos
+    @Query("SELECT * FROM earthquakes")
+    fun getEarthquakes(): MutableList<Earthquake>
+
+    @Query("SELECT * FROM earthquake WHERE magnitude > :mag")
+    fun getEarthquakeWithMagnitude(mag: Double): MutableList<Earthquake>
+
+    @Update
+    fun updateEq(vararg eq: Earthquake)
+
+    @Delete
+    fun deleteEq(vararg eq: Earthquake)
+}
+```
+
+
+
+
+
+
+
 
 
 
