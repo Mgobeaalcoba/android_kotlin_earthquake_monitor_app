@@ -752,6 +752,61 @@ interface EqDao {
 }
 ```
 
+-------------------------
+
+1- Una vez que hemos generado nuestra database y nuestra/s tabla/s en algun motor de bases. En este caso usé SQLite, ya podemos armar nuestra abstract class EqDatabase dentro del package database.
+
+**¿Que es una clase abstracta?**
+
+Una clase abstracta es una clase que declara variables o declara métodos, pero no los utiliza esta clase directamente.
+
+Como vemos aquí estamos declarando este cuidado, pero no lo vamos a utilizar aquí dentro de la clase, sino que lo vamos a utilizar en otro lugar, más concretamente en el Main Repository que ya habíamos creado anteriormente aquí.
+
+Los metodos del Dao los vamos a poder utilizar desde el MainRepository pero los "poderes" de Room con sus respectivas anotaciones @Query, etc los vamos a poder usar gracias a que declaramos esta clase abstracta. 
+
+2- Debemos sumarle a nuestra abstract class una anotación que le indique que clases son las que vamos a registrar en nuestra database. @Database(entities = [Earthquake::class], version = 1)
+
+**Importante acá:** Si tuviera mas de una entidad para pasarle a la Database entonces lo debería hacer separando por "," dentro de los corchetes. Y si cambio la estructura de mi tabla debo incrementar en 1 la versión. También debemos subir la versión cada vez que agreguemos o quitemos una entidad nueva. 
+
+3- Finalmente agrego la var y función necesaria para importar mi base de datos que es en todos los proyectos un copy paste de: 
+
+```kotlin
+@Database(entities = [Earthquake::class], version = 1)
+abstract class EqDatabase: RoomDatabase {
+    // Declaramos el eqDao pero no lo vamos a usar acá sino en el MainRepository:
+    abstract val eqDao: EqDao
+}
+
+private lateinit var INSTANCE: EqDatabase
+
+fun getDatabase(context: Context): EqDatabase {
+    // Sincronizo a todos los hilos o threads para que sepan que estoy usando la database:
+    synchronized(EqDatabase::class.java) {
+        // Si no se instanció la base entonces lo hago. Si ya está instancia entonces solo la retorno.
+        if (!::INSTANCE.isInitialized) {
+            INSTANCE = Room.databaseBuilder(
+                context.applicationContext,
+                EqDatabase::class.java,
+                // nombre de la database. No confundir con el nombre de la tabla
+                "earthquake_db"
+            ).build()
+        }
+        return INSTANCE
+    }
+}
+```
+
+Estamos implementando aquí un patron de diseño "singleton" (profundizar acá). Se usa en multiples lenguajes este patron. 
+
+Un singleton es una variable que solamente se va a instanciar una vez en toda la aplicación. 
+
+Aquí vemos que tenemos esta variable instance que es de tipo database y lo que vamos a hacer es que vamos a impedir que se creen más de una base de datos en la aplicación, porque puede haber problemas si la tratamos de editar en múltiples partes a la vez.
+
+
+
+
+
+
 
 
 
