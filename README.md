@@ -1011,6 +1011,215 @@ Entonces, cuando nosotros insertamos nuevos valores en la base de datos, si nada
 
 Pero si insertamos un nuevo terremoto o si algo cambia en la base de datos, automáticamente Run lo detecta y hace que el live data cambie, haciendo que el main Activity observe el cambio y se lo muestre al usuario.
 
+-----------------------------
+
+Hastá acá la aplicación va a funcionar como debe salvo que no tengamos internet. En ese momento, la app no podrá descargar la información de los terremotos desde internet por lo que nuestro "service" de 
+retrofit nos arrojará una excepción que debemos manejar y eso es lo que vamos a hacer ahora: 
+
+1- En el MainViewModel cuando invocamos la función que nos trae los datos del server y los guarda en nuestra database, fetchEarthquakes() debemos primero manejarlo con un try {} catch {}
+
+```kotlin
+class MainViewModel(application: Application): AndroidViewModel(application) {
+
+    private val database = getDatabase(application.applicationContext)
+    private val repository = MainRepository(database)
+
+    val eqlist= repository.eqList
+
+    init {
+        viewModelScope.launch {
+            try {
+                repository.fetchEarthquakes()
+            } catch (e: UnknownHostException) {
+                Log.d(TAG, "No internet conexion")
+            }
+        }
+    }
+}
+```
+
+----------------
+
+Manejando el status de traer datos de internet y agregar ruedita de loading: 
+
+- Manejando Status con LiveData
+
+1- Creo una private val en el MainViewModel llamada "_status" de tipo MutableLiveData<>() y luego una val llamada status de tipo LiveData<> que tenga un getter hacia "_status"
+
+2- Tenemos que rellenar de que tipo va a ser nuestro MutableLiveData llamada _status. Y para eso para a hacer una clase nueva en el package "api" lladada "ApiResponseStatus". En realidad va a ser una enum class con tres valores que podemos obtener. 
+
+3- El enum class hace que no podamos insertar otro valor que no sea el de alguno de los tres que conforman la clase. 
+
+4- Ahora debemos agregar un observer en MainActivity para este LiveData. 
+
+Así quedaría cada file entonces: 
+
+1- enum class ApiResponseStatus: 
+
+```kotlin
+enum class ApiResponseStatus {
+    DONE,
+    LOADING,
+    ERROR,
+    NOT_INTERNET_CONEXTION
+}
+```
+
+2- MainViewModel con LiveData para Status
+
+```kotlin
+class MainViewModel(application: Application): AndroidViewModel(application) {
+
+    private val database = getDatabase(application.applicationContext)
+    private val repository = MainRepository(database)
+
+    // Creo mi variable de tipo ApiResponseStatus:
+    private val _status = MutableLiveData<ApiResponseStatus>()
+    val status: LiveData<ApiResponseStatus>
+        get() = _status
+
+    val eqlist= repository.eqList
+
+    init {
+        viewModelScope.launch {
+            // Si no tengo internet entonces quiero que tome los datos de mi database:
+            try {
+                _status.value = ApiResponseStatus.LOADING
+                repository.fetchEarthquakes()
+                _status.value = ApiResponseStatus.DONE
+            } catch (e: UnknownHostException) {
+                _status.value = ApiResponseStatus.NOT_INTERNET_CONEXTION
+                Log.d(TAG, "No internet conexion")
+            }
+        }
+    }
+}
+```
+
+3- MainActivity con Observer para el LiveData del status y acciones en función del status: 
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Establezco la relación con mi dataBinding:
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Establezco el tipo de Layout con el que voy a repetir mis elementos en la lista:
+        binding.eqRecycler.layoutManager = LinearLayoutManager(this)
+
+        // Creo mi variable de ViewModel:
+        val viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
+
+        // Con el objeto adapter creado debo instanciar un adapter:
+        val adapter = EqAdapter(this)
+        // Asigno el adapter a mi data binding:
+        binding.eqRecycler.adapter = adapter
+
+        // Creado mi ViewModel en la MainActivity voy a crear el "observer" para modificar mi
+        // activity cuando hayan cambios en los datos de mi LiveData:
+        viewModel.eqlist.observe(this, Observer {
+            // Podría usar it también en lugar de eqList. Pero es mejor hacerlo así para ser explicitos.
+            eqList ->
+            adapter.submitList(eqList)
+
+            // Declaramos que queremos mostrar nuestra "Empty view" solo si la lista de earthquakes está vacia.
+            // Caso contrario mantenemos su visibilidad en "GONE".
+            handleEmptyView(eqList, binding)
+        })
+
+        // Creo un observer para el LiveData que maneja los status de mis descargas del servidor de terremotos:
+        viewModel.status.observe(this, Observer {
+            // a apiResponseStatus la estoy creando en este lambda function:
+            apiResponseStatus ->
+            if (apiResponseStatus == ApiResponseStatus.LOADING) {
+                binding.loadingWheel.visibility = View.VISIBLE
+            } else if (apiResponseStatus == ApiResponseStatus.DONE) {
+                binding.loadingWheel.visibility = View.GONE
+            } else if (apiResponseStatus == ApiResponseStatus.ERROR) {
+                binding.loadingWheel.visibility = View.GONE
+            }
+
+        })
+
+        // Ya no debo pasar la lista de forma "manual" sino que el observer la pasará frente a cada cambio ocurrido:
+        // Le paso al adapter la lista de valores que debe replicar y cargar:
+        // adapter.submitList(eqList)
+
+        // Codigo en MainActivity para encender el onClickListener sobre los items de la lista:
+        adapter.onItemClickListener = {
+            Toast.makeText(this, it.place, Toast.LENGTH_SHORT).show() // probamos que funcione el on click listener
+        }
+
+        // Me conecto desde el main con la API de terremotos.
+        // todo: Migrar a ViewModel service.getLastHourEarthquakes()
+
+    }
+
+    private fun handleEmptyView(
+        eqList: MutableList<Earthquake>,
+        binding: ActivityMainBinding
+    ) {
+        if (eqList.isEmpty()) {
+            binding.eqEmptyView.visibility = View.VISIBLE
+        } else {
+            binding.eqEmptyView.visibility = View.GONE
+        }
+    }
+}
+```
+
+4- activuty_main.xls con la <ProgressBar...>:
+
+```xls
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".main.MainActivity">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/eq_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+        <TextView
+            android:id="@+id/eq_empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            android:text="@string/no_earthquakes_right_now"
+            android:gravity="center"
+            />
+        
+        <ProgressBar
+            android:id="@+id/loading_wheel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            />
+    </FrameLayout>
+</layout>
+```
+
+-----------------------
+
 
 
 

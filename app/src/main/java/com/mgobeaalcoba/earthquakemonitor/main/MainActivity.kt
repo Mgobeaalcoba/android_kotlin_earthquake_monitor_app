@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
+import com.mgobeaalcoba.earthquakemonitor.api.ApiResponseStatus
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -39,6 +40,20 @@ class MainActivity : AppCompatActivity() {
             // Declaramos que queremos mostrar nuestra "Empty view" solo si la lista de earthquakes está vacia.
             // Caso contrario mantenemos su visibilidad en "GONE".
             handleEmptyView(eqList, binding)
+        })
+
+        // Creo un observer para el LiveData que maneja los status de mis descargas del servidor de terremotos:
+        viewModel.status.observe(this, Observer {
+            // a apiResponseStatus la estoy creando en este lambda function:
+            apiResponseStatus ->
+            if (apiResponseStatus == ApiResponseStatus.LOADING) {
+                binding.loadingWheel.visibility = View.VISIBLE
+            } else if (apiResponseStatus == ApiResponseStatus.DONE) {
+                binding.loadingWheel.visibility = View.GONE
+            } else if (apiResponseStatus == ApiResponseStatus.ERROR) {
+                binding.loadingWheel.visibility = View.GONE
+            }
+
         })
 
         // Ya no debo pasar la lista de forma "manual" sino que el observer la pasará frente a cada cambio ocurrido:
