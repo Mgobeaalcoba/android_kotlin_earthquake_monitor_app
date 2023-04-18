@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         binding.eqRecycler.layoutManager = LinearLayoutManager(this)
 
         // Creo mi variable de ViewModel:
-        val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        val viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
 
         // Con el objeto adapter creado debo instanciar un adapter:
         val adapter = EqAdapter(this)

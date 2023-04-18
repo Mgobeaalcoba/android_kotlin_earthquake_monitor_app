@@ -802,6 +802,134 @@ Un singleton es una variable que solamente se va a instanciar una vez en toda la
 
 Aquí vemos que tenemos esta variable instance que es de tipo database y lo que vamos a hacer es que vamos a impedir que se creen más de una base de datos en la aplicación, porque puede haber problemas si la tratamos de editar en múltiples partes a la vez.
 
+Ahora tenemos un problema
+y es que la fun  getDatabase() necesita un contexto para poder crear la base de datos, pero el Repositorio(que es donde lo vamos a llamar) no tiene un contexto.
+
+Si recuerdas los que tienen contexto son las Activities. Entonces no podemos obtener la base de datos aquí, sino que la debemos pasar al repositorio para que la pueda utilizar.
+
+Y para esto la vamos a agregar aquí en el constructor de nuestro MainRepository. 
+
+```kotlin
+class MainRepository (private val database: EqDatabase) {...}
+```
+
+Ahora la clase que llama al repositorio nos va a dar un error, dado que el repo era instanciado sin atributos en su constructor hasta acá. Por lo que debemos sumar el context así en MainViewModel: 
+
+1- Instanceo la base de datos en el ViewModel
+
+2- Paso a ese objeto database como atributo al MainRepository que instanceo luego. 
+
+3- Ahora el que necesita contexto es la database instancia y el ViewModel tampoco tiene contexto (nuevamente solo lo tienen las activities)
+
+4- Por lo que debo modificar el constructor de mi clase MainViewModel y su herencia para obtener este contexto y pasarselo a mi database instanciada en el ViewModel
+
+Así queda entonces mi MainViewModel: 
+
+```kotlin
+class MainViewModel(application: Application): AndroidViewModel(application) {
+
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    private val database = getDatabase(application.applicationContext)
+    private val repository = MainRepository(database)
+
+    init {
+        viewModelScope.launch {
+            _eqList.value = repository.fetchEarthquakes()
+        }
+    }
+}
+```
+
+El contexto del getDatabase puede ser el que usamos (application.applicationContext) o solamente "application". 
+
+Y ya con esto tenemos la base de datos y la estamos pasando al repositorio, pero este Application tiene que salir de algún lugar.
+
+Entonces vamos a ir a MainActivity y aquí es donde lo vamos a agregar.
+
+Para agregarlo tenemos que crear un **"factory"** para este ViewModel.
+
+Normalmente para instanciar o para crear un objeto, simplemente vemos qué atributos necesita o qué campos necesita y lo instanciar de esta manera.
+
+Pero como te habrás dado cuenta, en el caso de los ViewModel, no es así.
+
+```kotlin
+// Creo mi variable de ViewModel:
+val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+```
+
+No los instanciamos mediante su constructor, sino que utilizamos este ViewModel provider.
+
+Entonces, para pasarle valores a su constructor, necesitamos implementar algo que se llama **View Model Factory** y vamos a hacerlo para el MainViewModel. 
+
+1- Creo una class llamada "MainViewModelFactory". 
+
+2- Y esto de nuevo es codigo repetitivo para todos los proyectos. 
+
+```kotlin
+// En el constructor del ViewModelFactory y en el return debe ir aquello que necesita mi ViewModel
+// En este caso solo "application". Pero podría sumar otras necesidades. 
+class MainViewModelFactory(private val application: Application) :
+    ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return MainViewModel(application) as T
+        }
+    }
+}
+```
+
+3- Ahora con el MainViewModelFactory realizado podemos pasar al mismo y la applicatión como atributos al momento de instanciar nuestro ViewModel en el MainActivity. Así: 
+
+```kotlin
+// Creo mi variable de ViewModel:
+val viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
+```
+
+ahora si ya estamos pasando este application al ViewModel y en el ViewModel lo estamos utilizando para crear la base de datos y a su vez crear el Repositorio.
+
+**Ahora, si podemos utilizar la base de datos en el repositorio**
+
+------------------
+
+¿Que haremos ahora? 
+
+Vamos a pasar nuestros datos que traemos del Web Services de terremotos a nuestra base de datos. Y desde allí los vamos a traer unicamente al ViewModel para luego pintarlos en pantalla desde el Activity. 
+
+¿Por que? Por que estamos aplicando un patrón de diseño que se conoce como "Single Source of Truth" (unica fuente de verdad) y que nos evita problemas del tipo ¿Que pasa si falla la conexión con una de las dos fuente? ¿Que pasa si una tarda mas que la otra en responderme? 
+
+"Single..." refiere entonces a que todo lo datos que mostremos en nuestro programa deben venir de una única fuente. En este caso, de nuestra base de datos.
+
+**Servidor --> Base de datos --> ViewModel**
+
+1- Ahora si, ya tenemos los terremotos que descargamos de internet y simplemente vamos a guardarlos en nuestra base de datos...
+
+2- Esto se debe seguir realizando dentro del thread IO como lo veniamos haciendo cuando los datos venían directo del servidor. 
+
+```kotlin
+class MainRepository (private val database: EqDatabase) {
+    suspend fun fetchEarthquakes(): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+
+            // Obtengo los datos de terremotos desde mi Servidor.
+            val eqJsonResponse = service.getLastHourEarthquakes()
+            // Envío los datos obtenidos a parsear para poder construir mis objetos
+            val eqList = parseEqResult(eqJsonResponse)
+
+            // Abro mi database e inserto mis datos traidos desde el servidor
+            database.eqDao.insertAll(eqList)
+            // Envío entonces a mi thread Main mis terremotos pero desde la base de datos:
+            database.eqDao.getEarthquakes()
+        }
+    }
+    //More code...
+}
+```
+
+
+
+
 
 
 

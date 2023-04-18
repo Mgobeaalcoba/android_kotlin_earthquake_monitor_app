@@ -22,7 +22,7 @@ fun getDatabase(context: Context): EqDatabase {
             INSTANCE = Room.databaseBuilder(
                 context.applicationContext,
                 EqDatabase::class.java,
-                // nombre de la database. No confundir con el nombre de la tabla
+                // Nombre de la database. No confundir con el nombre de la tabla
                 "earthquake_db"
             ).build()
         }

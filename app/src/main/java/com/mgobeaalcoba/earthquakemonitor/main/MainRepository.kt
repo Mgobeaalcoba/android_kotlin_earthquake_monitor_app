@@ -3,15 +3,23 @@ package com.mgobeaalcoba.earthquakemonitor.main
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
 import com.mgobeaalcoba.earthquakemonitor.api.EqJsonResponse
 import com.mgobeaalcoba.earthquakemonitor.api.service
+import com.mgobeaalcoba.earthquakemonitor.database.EqDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class MainRepository {
+class MainRepository (private val database: EqDatabase) {
     suspend fun fetchEarthquakes(): MutableList<Earthquake> {
         return withContext(Dispatchers.IO) {
+
+            // Obtengo los datos de terremotos desde mi Servidor.
             val eqJsonResponse = service.getLastHourEarthquakes()
+            // Envío los datos obtenidos a parsear para poder construir mis objetos
             val eqList = parseEqResult(eqJsonResponse)
-            eqList
+
+            // Abro mi database e inserto mis datos traidos desde el servidor
+            database.eqDao.insertAll(eqList)
+            // Envío entonces a mi thread Main mis terremotos pero desde la base de datos:
+            database.eqDao.getEarthquakes()
         }
     }
 
