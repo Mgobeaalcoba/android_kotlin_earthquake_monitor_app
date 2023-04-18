@@ -927,6 +927,94 @@ class MainRepository (private val database: EqDatabase) {
 }
 ```
 
+Con esto ya tenemos la app funcionando pero podemos aún simplificarla haciendo que los datos que nos devuelva la base de datos sean del tipo LiveData por lo que ya no tendremos que pintarlos sino que solos se actualizaran haciendo algunas ediciones en nuestro codigo. 
+
+Vayamos paso a paso: 
+
+1- EqDao.kt: Vamos a cambiar el return de nuestra fun getEarthquakes(): de "MutableList<Earthquakes>" a "LiveData<MutableList<Earthquakes>>"
+
+```kotlin
+@Dao
+interface EqDao {
+
+    // Metodo para insertar terremotos:
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(eqList: MutableList<Earthquake>)
+
+    // Metodo para obtener terremotos
+    @Query("SELECT * FROM earthquakes")
+    fun getEarthquakes(): LiveData<MutableList<Earthquake>>
+
+    @Query("SELECT * FROM earthquakes WHERE magnitude > :mag")
+    fun getEarthquakeWithMagnitude(mag: Double): LiveData<MutableList<Earthquake>>
+
+    @Update
+    fun updateEq(vararg eq: Earthquake)
+
+    @Delete
+    fun deleteEq(vararg eq: Earthquake)
+}
+```
+
+2- De tal forma que el thread ".IO" de nuestro MainRepository ya no requiere devolver terremotos. Sino que su última acción será insertar en la "database" los terremotos que traemos desde el Servidor.
+
+3- En el MainRepository también debemos hacer que la función "fetchEarthqueakes" ya no devuelva nada. Puesto que no lo necesitamos. Borramos entonces ": MutableList<Earthquake>"
+
+4- Creamos en el MainRepository un "eqList" que es de tipo LiveData<MutableList<Earthquake>> y la definimos como = database.eqDao.getEarthquakes()
+
+```kotlin
+class MainRepository (private val database: EqDatabase) {
+    
+    val eqList = database.eqDao.getEarthquakes()
+    
+    suspend fun fetchEarthquakes() {
+        return withContext(Dispatchers.IO) {
+
+            // Obtengo los datos de terremotos desde mi Servidor.
+            val eqJsonResponse = service.getLastHourEarthquakes()
+            // Envío los datos obtenidos a parsear para poder construir mis objetos
+            val eqList = parseEqResult(eqJsonResponse)
+
+            // Abro mi database e inserto mis datos traidos desde el servidor
+            database.eqDao.insertAll(eqList)
+        }
+    }
+    // more code ...
+}
+```
+
+5- En MainViewModel ahora tendremos un error al usar el viewModelScope.launch{}
+dado que repository.fetchEarthqueakes() ya no retorna nada. Por lo que solo dejamos la ejecución de la variable. Sin pintar el LiveData. 
+
+6- Ya no necesitamos en el MainViewModel entonces al private var _eqList, tampoco el getter sobre la val eqList y a esta ultima debemos redefinirla como repository.eqList
+
+7- Finalmente pasamos la ejecución de esta linea para debajo de la instanciación del repository. 
+
+```kotlin
+class MainViewModel(application: Application): AndroidViewModel(application) {
+
+    private val database = getDatabase(application.applicationContext)
+    private val repository = MainRepository(database)
+
+    val eqlist= repository.eqList
+
+    init {
+        viewModelScope.launch {
+            repository.fetchEarthquakes()
+        }
+    }
+```
+
+Cuando nosotros pedimos este get x automáticamente nos devuelve un livedata y al live data lo estamos observando en Main Activity.
+
+Entonces, cuando nosotros insertamos nuevos valores en la base de datos, si nada cambia, ese live data no cambia y no pasa nada en el main activity.
+
+Pero si insertamos un nuevo terremoto o si algo cambia en la base de datos, automáticamente Run lo detecta y hace que el live data cambie, haciendo que el main Activity observe el cambio y se lo muestre al usuario.
+
+
+
+
+
 
 
 

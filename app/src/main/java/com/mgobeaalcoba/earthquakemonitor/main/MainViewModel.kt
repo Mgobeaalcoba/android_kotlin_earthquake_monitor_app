@@ -8,16 +8,14 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application): AndroidViewModel(application) {
 
-    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
-    val eqlist: LiveData<MutableList<Earthquake>>
-        get() = _eqList
-
     private val database = getDatabase(application.applicationContext)
     private val repository = MainRepository(database)
 
+    val eqlist= repository.eqList
+
     init {
         viewModelScope.launch {
-            _eqList.value = repository.fetchEarthquakes()
+            repository.fetchEarthquakes()
         }
     }
 }

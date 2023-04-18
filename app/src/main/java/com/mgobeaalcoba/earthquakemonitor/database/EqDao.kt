@@ -1,5 +1,6 @@
 package com.mgobeaalcoba.earthquakemonitor.database
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
 
@@ -12,10 +13,10 @@ interface EqDao {
 
     // Metodo para obtener terremotos
     @Query("SELECT * FROM earthquakes")
-    fun getEarthquakes(): MutableList<Earthquake>
+    fun getEarthquakes(): LiveData<MutableList<Earthquake>>
 
     @Query("SELECT * FROM earthquakes WHERE magnitude > :mag")
-    fun getEarthquakeWithMagnitude(mag: Double): MutableList<Earthquake>
+    fun getEarthquakeWithMagnitude(mag: Double): LiveData<MutableList<Earthquake>>
 
     @Update
     fun updateEq(vararg eq: Earthquake)
