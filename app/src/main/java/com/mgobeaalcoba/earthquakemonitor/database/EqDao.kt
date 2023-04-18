@@ -14,7 +14,7 @@ interface EqDao {
     @Query("SELECT * FROM earthquakes")
     fun getEarthquakes(): MutableList<Earthquake>
 
-    @Query("SELECT * FROM earthquake WHERE magnitude > :mag")
+    @Query("SELECT * FROM earthquakes WHERE magnitude > :mag")
     fun getEarthquakeWithMagnitude(mag: Double): MutableList<Earthquake>
 
     @Update
