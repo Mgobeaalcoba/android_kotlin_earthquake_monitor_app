@@ -28,7 +28,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         reloadEarthquakes(false)
     }
 
-    fun reloadEarthquakes(sortByMagnitude: Boolean) {
+    private fun reloadEarthquakes(sortByMagnitude: Boolean) {
         viewModelScope.launch {
             // Si no tengo internet entonces quiero que tome los datos de mi database:
             try {
@@ -39,6 +39,12 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
                 _status.value = ApiResponseStatus.NOT_INTERNET_CONEXTION
                 Log.d(TAG, "No internet conexion")
             }
+        }
+    }
+
+    fun reloadEarthquakesFromDatabase(sortByMagnitude: Boolean) {
+        viewModelScope.launch {
+            _eqList.value = repository.fetchEarthquakes(sortByMagnitude)
         }
     }
 }

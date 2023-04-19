@@ -85,9 +85,9 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val itemId = item.itemId
         if (itemId == R.id.main_menu_sort_magnitude) {
-            viewModel.reloadEarthquakes(true)
+            viewModel.reloadEarthquakesFromDatabase(true)
         } else if (itemId == R.id.main_menu_sort_time){
-            viewModel.reloadEarthquakes(false)
+            viewModel.reloadEarthquakesFromDatabase(false)
         }
         return super.onOptionsItemSelected(item)
     }
