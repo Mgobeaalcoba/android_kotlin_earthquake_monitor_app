@@ -9,9 +9,7 @@ import kotlinx.coroutines.withContext
 
 class MainRepository (private val database: EqDatabase) {
 
-    val eqList = database.eqDao.getEarthquakes()
-
-    suspend fun fetchEarthquakes() {
+    suspend fun fetchEarthquakes(sortByMagnitude: Boolean): MutableList<Earthquake> {
         return withContext(Dispatchers.IO) {
 
             // Obtengo los datos de terremotos desde mi Servidor.
@@ -21,6 +19,12 @@ class MainRepository (private val database: EqDatabase) {
 
             // Abro mi database e inserto mis datos traidos desde el servidor
             database.eqDao.insertAll(eqList)
+
+            if (sortByMagnitude) {
+                database.eqDao.getEarthquakeByMagnitude()
+            } else {
+                database.eqDao.getEarthquakes()
+            }
         }
     }
 
@@ -35,7 +39,7 @@ class MainRepository (private val database: EqDatabase) {
         for (feature in featureList) {
             val id = feature.id
             val place = feature.properties.place
-            val magnitude = feature.properties.magnitude
+            val magnitude = feature.properties.mag
             val time = feature.properties.time
             val longitude = feature.geometry.longitude
             val latitude = feature.geometry.latitude

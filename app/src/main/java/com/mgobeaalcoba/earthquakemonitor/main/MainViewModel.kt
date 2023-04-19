@@ -20,14 +20,20 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     val status: LiveData<ApiResponseStatus>
         get() = _status
 
-    val eqlist= repository.eqList
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
 
     init {
+        reloadEarthquakes(false)
+    }
+
+    fun reloadEarthquakes(sortByMagnitude: Boolean) {
         viewModelScope.launch {
             // Si no tengo internet entonces quiero que tome los datos de mi database:
             try {
                 _status.value = ApiResponseStatus.LOADING
-                repository.fetchEarthquakes()
+                _eqList.value = repository.fetchEarthquakes(sortByMagnitude)
                 _status.value = ApiResponseStatus.DONE
             } catch (e: UnknownHostException) {
                 _status.value = ApiResponseStatus.NOT_INTERNET_CONEXTION

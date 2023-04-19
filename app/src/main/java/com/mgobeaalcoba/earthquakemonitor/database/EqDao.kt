@@ -13,14 +13,8 @@ interface EqDao {
 
     // Metodo para obtener terremotos
     @Query("SELECT * FROM earthquakes")
-    fun getEarthquakes(): LiveData<MutableList<Earthquake>>
+    fun getEarthquakes(): MutableList<Earthquake>
 
-    @Query("SELECT * FROM earthquakes WHERE magnitude > :mag")
-    fun getEarthquakeWithMagnitude(mag: Double): LiveData<MutableList<Earthquake>>
-
-    @Update
-    fun updateEq(vararg eq: Earthquake)
-
-    @Delete
-    fun deleteEq(vararg eq: Earthquake)
+    @Query("SELECT * FROM earthquakes ORDER BY magnitude DESC")
+    fun getEarthquakeByMagnitude(): MutableList<Earthquake>
 }

@@ -2,6 +2,8 @@ package com.mgobeaalcoba.earthquakemonitor.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -9,11 +11,16 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
+import com.mgobeaalcoba.earthquakemonitor.R
 import com.mgobeaalcoba.earthquakemonitor.api.ApiResponseStatus
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
 import com.mgobeaalcoba.earthquakemonitor.detail.DetailActivity
 
 class MainActivity : AppCompatActivity() {
+
+    // Creo mi variable de ViewModel:
+    private lateinit var viewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -25,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         binding.eqRecycler.layoutManager = LinearLayoutManager(this)
 
         // Creo mi variable de ViewModel:
-        val viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
+        viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
 
         // Con el objeto adapter creado debo instanciar un adapter:
         val adapter = EqAdapter(this)
@@ -68,9 +75,21 @@ class MainActivity : AppCompatActivity() {
             // Abro la DetailActivity para mostrar los datos del terremoto que paso.
             openDetailActivity(it)
         }
+    }
 
-        // Me conecto desde el main con la API de terremotos.
-        // todo: Migrar a ViewModel service.getLastHourEarthquakes()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val itemId = item.itemId
+        if (itemId == R.id.main_menu_sort_magnitude) {
+            viewModel.reloadEarthquakes(true)
+        } else if (itemId == R.id.main_menu_sort_time){
+            viewModel.reloadEarthquakes(false)
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun openDetailActivity(earthquake: Earthquake) {

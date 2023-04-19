@@ -1220,6 +1220,334 @@ class MainActivity : AppCompatActivity() {
 
 -----------------------
 
+Armando un Option Menu para nuestra App: 
+
+1- En carpeta "res" vamos a crear un New Resource Directory
+
+2- Lo nombramos "menu" de tipo "menu"
+
+3- Allí van a vivir todos los "menu" de la aplicación. 
+
+4- Sobre la carpeta de Menu damos click derecho y Menu Resource File
+
+5- Le ponemos en este caso main_menu. Si fuese el menu de otra activity entonces solamente cambiamos la primera parte del nombre. 
+
+6- Y el xml que se nos abre vamos a agregar los botones que queremos tener en el menú: 
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/main_menu_sort_magnitude"
+        android:title="@string/sort_by_magnitude"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/warning_fill0_wght400_grad0_opsz48"/>
+
+    <item
+        android:id="@+id/main_menu_sort_time"
+        android:title="@string/sort_by_time"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/history_fill0_wght400_grad0_opsz48"/>
+
+</menu>
+```
+
+--------------------
+
+Ahora vamos a darle funcionalidad en nuestro MainActivity: 
+
+1- Invocamos un metodo que ya contiene el Menu que se llama "onCreateOptionsMenu()
+
+```kotlin
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+```
+
+2- Ahora debemos indicarle quue debe hacer frente a cada opción del menú y para ello también vamos a sobreescribir un metodo de la Activity. En este caso onOptionsItemSelected()
+
+```kotlin
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val itemId = item.itemId
+        if (itemId == R.id.main_menu_sort_magnitude) {
+            // TODO - Sort by magnitude
+        } else if (itemId == R.id.main_menu_sort_time){
+            // TODO - Sort by time
+        }
+        return super.onOptionsItemSelected(item)
+    }
+```
+
+3- Luego debemos crear en nuestro eqDao funciones del tipo @Query para obtener los datos ordenados usando SQL
+
+```kotlin
+@Dao
+interface EqDao {
+
+    // Metodo para insertar terremotos:
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(eqList: MutableList<Earthquake>)
+
+    // Metodo para obtener terremotos
+    @Query("SELECT * FROM earthquakes")
+    fun getEarthquakes(): LiveData<MutableList<Earthquake>>
+
+    @Query("SELECT * FROM earthquakes WHERE magnitude > :mag")
+    fun getEarthquakeWithMagnitude(mag: Double): LiveData<MutableList<Earthquake>>
+
+    @Update
+    fun updateEq(vararg eq: Earthquake)
+
+    @Delete
+    fun deleteEq(vararg eq: Earthquake)
+
+    @Query("SELECT * FROM earthquakes ORDER BY magnitude ASC")
+    fun getEarthquakeByMagnitude(mag: Double): LiveData<MutableList<Earthquake>>
+    
+    @Query("SELECT * FROM earthquakes ORDER BY time ASC")
+    fun getEarthquakeByTime(mag: Double): LiveData<MutableList<Earthquake>>
+}
+```
+
+4- Vamos al repositorio que es donde obtenemos y manejamos todos nuestros datos 
+
+En el repositorio aquí tenemos una earthquake list que automáticamente se comunicaba con el ViewModel cuando la base de datos cambiaba y actualizamos la val eqList del MainViewModel.
+
+Este eqList lo estamos **observando** desde MainActivity aquí: 
+
+```kotlin
+        // Creado mi ViewModel en la MainActivity voy a crear el "observer" para modificar mi
+        // activity cuando hayan cambios en los datos de mi LiveData:
+        viewModel.eqlist.observe(this, Observer {
+            // Podría usar it también en lugar de eqList. Pero es mejor hacerlo así para ser explicitos.
+            eqList ->
+            adapter.submitList(eqList)
+
+            // Declaramos que queremos mostrar nuestra "Empty view" solo si la lista de earthquakes está vacia.
+            // Caso contrario mantenemos su visibilidad en "GONE".
+            handleEmptyView(eqList, binding)
+        })
+```
+
+Y una vez que este eqList cambia desde la base de dato, entonces lo actializamos para la vista del usuario. 
+
+**Lamentablemente al querer mostrar distintas vistas en función del boton que el usuario apreta no vamos a poder saguir usando los LiveData y los observers sino que deberemos actualizar la vista del usuario nosotros.**
+
+Vamos a perder esa funcionalidad de actualizar directamente desde la base de datos hasta Main Activity.
+
+Pero bueno, ganamos que ahora podemos filtrar los terremotos o más bien podemos ordenarlos.
+
+Entonces vamos a modificar la función fetchEarthquake() del MainRepository...
+
+```kotlin
+    suspend fun fetchEarthquakes(sortByMagnitude: Boolean): MutableList<Earthquake> {
+        return withContext(Dispatchers.IO) {
+
+            // Obtengo los datos de terremotos desde mi Servidor.
+            val eqJsonResponse = service.getLastHourEarthquakes()
+            // Envío los datos obtenidos a parsear para poder construir mis objetos
+            val eqList = parseEqResult(eqJsonResponse)
+
+            // Abro mi database e inserto mis datos traidos desde el servidor
+            database.eqDao.insertAll(eqList)
+
+            if (sortByMagnitude) {
+                database.eqDao.getEarthquakeByMagnitude()
+            } else {
+                database.eqDao.getEarthquakes()
+            }
+        }
+    }
+```
+
+Y vamos a editar también el EqDao dado que ya no tiene que devolver mas LiveData sino solo MutableList: 
+
+```kotlin
+@Dao
+interface EqDao {
+
+    // Metodo para insertar terremotos:
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(eqList: MutableList<Earthquake>)
+
+    // Metodo para obtener terremotos
+    @Query("SELECT * FROM earthquakes")
+    fun getEarthquakes(): MutableList<Earthquake>
+
+    @Query("SELECT * FROM earthquakes WHERE magnitude > :mag")
+    fun getEarthquakeWithMagnitude(mag: Double): MutableList<Earthquake>
+
+    @Update
+    fun updateEq(vararg eq: Earthquake)
+
+    @Delete
+    fun deleteEq(vararg eq: Earthquake)
+
+    @Query("SELECT * FROM earthquakes ORDER BY magnitude ASC")
+    fun getEarthquakeByMagnitude(mag: Double): MutableList<Earthquake>
+
+    @Query("SELECT * FROM earthquakes ORDER BY time ASC")
+    fun getEarthquakeByTime(mag: Double): MutableList<Earthquake>
+}
+```
+
+Ahora que no tenemos mas los retornos del eqDao como LiveData no podemos actualizar mediante el observer por lo que debemos editar tambien el MainViewModel. 
+
+En su lugar debemos hacer lo mismo que hacemos con el "Status" de la conexión. Es decir, crear un MutableLiveData y un LiveData que haga getter en el anterior para actualizar. 
+
+Así queda MainViewModel: 
+
+```kotlin
+private val TAG = MainViewModel::class.java.simpleName
+class MainViewModel(application: Application): AndroidViewModel(application) {
+
+    private val database = getDatabase(application.applicationContext)
+    private val repository = MainRepository(database)
+
+    // Creo mi variable de tipo ApiResponseStatus:
+    private val _status = MutableLiveData<ApiResponseStatus>()
+    val status: LiveData<ApiResponseStatus>
+        get() = _status
+
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    init {
+        reloadEarthquakes(false)
+    }
+
+    private fun reloadEarthquakes(sortByMagnitude: Boolean) {
+        viewModelScope.launch {
+            // Si no tengo internet entonces quiero que tome los datos de mi database:
+            try {
+                _status.value = ApiResponseStatus.LOADING
+                _eqList.value = repository.fetchEarthquakes(sortByMagnitude)
+                _status.value = ApiResponseStatus.DONE
+            } catch (e: UnknownHostException) {
+                _status.value = ApiResponseStatus.NOT_INTERNET_CONEXTION
+                Log.d(TAG, "No internet conexion")
+            }
+        }
+    }
+}
+```
+
+Así queda MainActivity: 
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Establezco la relación con mi dataBinding:
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Establezco el tipo de Layout con el que voy a repetir mis elementos en la lista:
+        binding.eqRecycler.layoutManager = LinearLayoutManager(this)
+
+        // Creo mi variable de ViewModel:
+        val viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
+
+        // Con el objeto adapter creado debo instanciar un adapter:
+        val adapter = EqAdapter(this)
+        // Asigno el adapter a mi data binding:
+        binding.eqRecycler.adapter = adapter
+
+        // Creado mi ViewModel en la MainActivity voy a crear el "observer" para modificar mi
+        // activity cuando hayan cambios en los datos de mi LiveData:
+        viewModel.eqlist.observe(this, Observer {
+            // Podría usar it también en lugar de eqList. Pero es mejor hacerlo así para ser explicitos.
+            eqList ->
+            adapter.submitList(eqList)
+
+            // Declaramos que queremos mostrar nuestra "Empty view" solo si la lista de earthquakes está vacia.
+            // Caso contrario mantenemos su visibilidad en "GONE".
+            handleEmptyView(eqList, binding)
+        })
+
+        // Creo un observer para el LiveData que maneja los status de mis descargas del servidor de terremotos:
+        viewModel.status.observe(this, Observer {
+            // a apiResponseStatus la estoy creando en este lambda function:
+            apiResponseStatus ->
+            if (apiResponseStatus == ApiResponseStatus.LOADING) {
+                binding.loadingWheel.visibility = View.VISIBLE
+            } else if (apiResponseStatus == ApiResponseStatus.DONE) {
+                binding.loadingWheel.visibility = View.GONE
+            } else if (apiResponseStatus == ApiResponseStatus.ERROR) {
+                binding.loadingWheel.visibility = View.GONE
+            }
+
+        })
+
+        // Ya no debo pasar la lista de forma "manual" sino que el observer la pasará frente a cada cambio ocurrido:
+        // Le paso al adapter la lista de valores que debe replicar y cargar:
+        // adapter.submitList(eqList)
+
+        // Codigo en MainActivity para encender el onClickListener sobre los items de la lista:
+        adapter.onItemClickListener = {
+            // Toast.makeText(this, it.place, Toast.LENGTH_SHORT).show() // probamos que funcione el on click listener
+            // Abro la DetailActivity para mostrar los datos del terremoto que paso.
+            openDetailActivity(it)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val itemId = item.itemId
+        if (itemId == R.id.main_menu_sort_magnitude) {
+            // TODO - Sort by magnitude
+        } else if (itemId == R.id.main_menu_sort_time){
+            // TODO - Sort by time
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun openDetailActivity(earthquake: Earthquake) {
+        // Creamos un intent activity:
+        val intent = Intent(this, DetailActivity::class.java )
+        // Solo voy a pasar como putExtra el objeto earthquake aprovechando el Parcelable:
+        intent.putExtra(DetailActivity.EARTHQUAKE_KEY, earthquake)
+        // Enviamos el objeto matchScore a la siguiente activity:
+        startActivity(intent)
+    }
+
+    private fun handleEmptyView(
+        eqList: MutableList<Earthquake>,
+        binding: ActivityMainBinding
+    ) {
+        if (eqList.isEmpty()) {
+            binding.eqEmptyView.visibility = View.VISIBLE
+        } else {
+            binding.eqEmptyView.visibility = View.GONE
+        }
+    }
+}
+```
+
+Ahí quedó pero los botones no funcionan aún. Debo darle vida a los mismos. 
+
+1- Hago publico el metodo reloadEarthquakes() del MainViewModel
+
+2- Sacamos al ViewModel del alcance de la fun onCreate y lo pasamos a alcance global para poder usarlo desde las otras funciones. 
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2,4 +2,10 @@
 <resources>
     <string name="app_name">Earthquake Monitor</string>
     <string name="no_earthquakes_right_now">Sin terremotos en este momento</string>
+    <string name="magnitude_format">%.2f</string>
+    <string name="longitude">Longitud</string>
+    <string name="latitude">Latitud</string>
+    <string name="richter">Richter</string>
+    <string name="sort_by_time">Ordenar por horario ascendente</string>
+    <string name="sort_by_magnitude">Ordenar por magnitud descendente</string>
 </resources>
