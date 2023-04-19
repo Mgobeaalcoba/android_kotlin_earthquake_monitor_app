@@ -20,8 +20,8 @@
 <br>
 
 <div style="display:flex;">
-  <img src="images/screen_1.png" alt="Captura 1" style="flex-grow:1; margin-right:10px; max-width:50%; height: auto;">
-  <img src="images/screen_2.png" alt="Captura 2" style="flex-grow:1; max-width:50%; height: auto;">
+  <img src="images/screen_1.png" alt="Captura 1" style="margin-right:10px; max-width:50%; height: auto;">
+  <img src="images/screen_2.png" alt="Captura 2" style= "max-width:50%; height: auto;">
 </div>
 
 <br>
