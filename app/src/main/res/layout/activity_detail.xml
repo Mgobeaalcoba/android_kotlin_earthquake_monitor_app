@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
+        <variable
+            name="earthquake"
+            type="com.mgobeaalcoba.earthquakemonitor.Earthquake" />
     </data>
 
     <RelativeLayout
@@ -30,6 +32,7 @@
                 android:textSize="72sp"
                 android:padding="16dp"
                 android:textColor="#0055FF"
+                android:text="@{earthquake.getMagnitudeEarthquake()}"
                 tools:text="4.50"/>
 
             <TextView
@@ -97,8 +100,9 @@
                         android:layout_width="wrap_content"
                         android:textSize="16sp"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="12dp"
+                        android:layout_marginStart="12dp"
                         android:textColor="#95a5a6"
+                        android:text="@{earthquake.getLatitudeEarthquake()}"
                         tools:text="20.3084"
                         />
 
@@ -128,6 +132,7 @@
                         android:textSize="16sp"
                         android:layout_marginStart="12dp"
                         android:textColor="#95a5a6"
+                        android:text="@{earthquake.getLongitudeEarthquake()}"
                         tools:text="39.6585"
                         />
 
@@ -176,6 +181,7 @@
                 android:padding="4dp"
                 android:textSize="16sp"
                 android:textColor="#212121"
+                android:text="@{earthquake.getPlaceEarthquake()}"
                 tools:text="6 km N of Filátes, Greece"/>
 
         </LinearLayout>
@@ -207,7 +213,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/white"
                 android:layout_gravity="center"
-                android:src="@drawable/warning_fill1_wght400_grad0_opsz48"
+                android:src="@drawable/schedule_fill1_wght400_grad0_opsz48"
                 />
 
             <TextView
@@ -218,12 +224,10 @@
                 android:padding="4dp"
                 android:textSize="16sp"
                 android:textColor="#212121"
-                tools:text="6 km N of Filátes, Greece"/>
+                android:text="@{earthquake.getTimestampEarthquake()}"
+                tools:text="28/ago./2020 19:18:28"/>
 
         </LinearLayout>
-
-
-
 
     </RelativeLayout>
 </layout>

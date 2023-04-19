@@ -1,5 +1,6 @@
 package com.mgobeaalcoba.earthquakemonitor.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
 import com.mgobeaalcoba.earthquakemonitor.api.ApiResponseStatus
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
+import com.mgobeaalcoba.earthquakemonitor.detail.DetailActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,12 +64,22 @@ class MainActivity : AppCompatActivity() {
 
         // Codigo en MainActivity para encender el onClickListener sobre los items de la lista:
         adapter.onItemClickListener = {
-            Toast.makeText(this, it.place, Toast.LENGTH_SHORT).show() // probamos que funcione el on click listener
+            // Toast.makeText(this, it.place, Toast.LENGTH_SHORT).show() // probamos que funcione el on click listener
+            // Abro la DetailActivity para mostrar los datos del terremoto que paso.
+            openDetailActivity(it)
         }
 
         // Me conecto desde el main con la API de terremotos.
         // todo: Migrar a ViewModel service.getLastHourEarthquakes()
+    }
 
+    private fun openDetailActivity(earthquake: Earthquake) {
+        // Creamos un intent activity:
+        val intent = Intent(this, DetailActivity::class.java )
+        // Solo voy a pasar como putExtra el objeto earthquake aprovechando el Parcelable:
+        intent.putExtra(DetailActivity.EARTHQUAKE_KEY, earthquake)
+        // Enviamos el objeto matchScore a la siguiente activity:
+        startActivity(intent)
     }
 
     private fun handleEmptyView(
