@@ -2,4 +2,7 @@
     <string name="app_name">Earthquake Monitor</string>
     <string name="no_earthquakes_right_now">No earthquakes right now</string>
     <string name="magnitude_format" translatable="false">%.2f</string>
+    <string name="longitude">Longitude</string>
+    <string name="latitude">Latitude</string>
+    <string name="richter">Richter</string>
 </resources>
