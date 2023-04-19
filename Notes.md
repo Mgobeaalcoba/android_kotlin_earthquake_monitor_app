@@ -4,7 +4,7 @@
 
 Vamos a empezar a implementar la arquitectura MVVM en la app de Monitor de Terremotos, empezaremos por la descarga de datos de internet:
 
-![Captura 1](images/screen_1.png)
+![Captura 1](images/mapa_1.png)
 
 Temas que vamos a trabajar para esto son: 
 
