@@ -20,8 +20,8 @@
 <br>
 
 <div style="display:flex;">
-  <img src="images/screen_1.png" alt="Captura 1" style="float:left; margin-right:10px; width:900px; height:600px">
-  <img src="images/screen_2.png" alt="Captura 2" style="float:left; width:900px; height:600px">
+  <img src="images/screen_1.png" alt="Captura 1" style="float:left; margin-right:10px; width:600px; height:500px">
+  <img src="images/screen_2.png" alt="Captura 2" style="float:left; width:600px; height:500px">
 </div>
 
 <br>
