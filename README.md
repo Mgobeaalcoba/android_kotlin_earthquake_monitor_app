@@ -14,6 +14,7 @@
 - LiveData y Observers
 - Option Menu y Ordenamientos distintos del Recycler View
 - Configuración de Shared Preferences
+- Sincronización de datos de forma eficiente mediante Work Manager
 
 <br>
 
