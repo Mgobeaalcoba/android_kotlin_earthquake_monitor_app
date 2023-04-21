@@ -1648,6 +1648,151 @@ class MainViewModel(application: Application, sortType: Boolean): AndroidViewMod
 
 Recibido como parametro en MainViewModel se lo paso como valor al metodo init en lugar del false que tenía por default como muestro arriba. Y listo! 
 
+---------------------
+
+**WorkManager:**
+
+En la actualidad, tal como está configurada nuestra app estamos descargando los datos del server cada vez que abrimos nuestra aplicación. Pero puede ocurrir, que los datos no cambian de forma tan rapida, por lo que nos conviene actualizar los datos de forma programada, en determinado horario o cada cierta frecuencia. Eso lo vamos a hacer con el WorkManager: 
+
+1- Creamos en nuestro paquete "api" una clase llamada "SyncWorkManager". Esta clase es la que va a mantener sincronizado los datos cada hora siempre que exista conexión a internet
+
+2- Para poder usar el WorkManager debemos ir, previamente, a build.gradle y agregar la dependencia y luego sincronizar el proyecto. 
+
+```kotlin
+implementation 'androidx.work:work-runtime-ktx:2.8.1'
+```
+
+3- Normalmente nuestra clase "SyncWorkManager" heredaría directamente de Worker. Pero como estamos trayendo los datos en una corrutina entonces debe heredar de CoroutineWorker. Por el momento nos va quedando algo así: 
+
+```kotlin
+import android.content.Context
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+
+class SyncWorkManager(appContext: Context, params: WorkerParameters): CoroutineWorker(appContext, params) {
+    override suspend fun doWork(): Result {
+        TODO("Not yet implemented")
+    }
+
+}
+```
+
+Si observamos bien, el metodo doWork es una "suspend fun". Esto se debe a que heredamos de CoroutineWorker. Si hubiesemos heredado de Worker sería solo una "fun".
+
+4- Vamos a hacer en esta clase algo muy similar a lo que hacemos en MainViewModel, que tiene que ver con copiar nuestras variables de database y repositoy y traerlas como variables globales a nuestro SyncWorkManager. 
+
+```kotlin
+class SyncWorkManager(appContext: Context, params: WorkerParameters): CoroutineWorker(appContext, params) {
+
+    private val database = getDatabase(appContext)
+    private val repository = MainRepository(database)
+
+    override suspend fun doWork(): Result {
+        repository.fetchEarthquakes(true)
+        
+        return Result.success()
+    }
+}
+```
+
+Con esto ya se activó el WorkManager. Nos falta llamarlo para que comience a funcionar. 
+
+5- Vamos a crear un nuevo file y le vamos a poner de nombre WorkerUtil. El mismo debe estar ubicado dentro del package "api" también. Esta va a ser de tipo "object". 
+
+**Disclaimer:**
+
+*¿Que es object como palabra reservada en Kotlin?* 
+
+*En Kotlin, la palabra reservada "object" se utiliza para definir objetos singleton. Un objeto singleton es una instancia única de una clase que se crea en el momento de la carga de la clase y que puede ser referenciada en cualquier parte del código.*
+
+*La principal ventaja de los objetos singleton es que permiten tener una única instancia de una clase en toda la aplicación. Esto puede ser útil cuando se desea compartir un objeto en todo el programa, como una conexión de base de datos, un objeto de registro o una configuración global.*
+
+*Además, los objetos singleton también pueden contener métodos y propiedades, lo que los hace muy útiles para crear utilidades y funciones que se utilizan en toda la aplicación.*
+
+*A diferencia de las clases normales, los objetos singleton no pueden ser instanciados múltiples veces, ni se les puede asignar un constructor personalizado. Esto los hace una herramienta muy poderosa para controlar el acceso a instancias únicas de una clase y para garantizar la consistencia en todo el programa.*
+
+**Importante: El tiempo minimo cada el cual se puede ejecutar un WorkManager es 15 minutos. Poner menos no provoca otro efecto**
+
+Así quedarían entonces el SyncWorkManager y el WorkerUtil: 
+
+SyncWorkManager: 
+
+```kotlin
+class SyncWorkManager(appContext: Context, params: WorkerParameters): CoroutineWorker(appContext, params) {
+    companion object {
+        const val WORK_NAME = "SyncWorkManager"
+    }
+
+    private val database = getDatabase(appContext)
+    private val repository = MainRepository(database)
+
+    override suspend fun doWork(): Result {
+        repository.fetchEarthquakes(true)
+
+        return Result.success()
+    }
+}
+```
+
+WorkerUtil: 
+
+```kotlin
+object WorkerUtil {
+    fun scheduleSync(context: Context) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED) // Ponemos como condición que esté conectado a internet
+            .setRequiresBatteryNotLow(true) // También que no tenga batería baja
+            .build()
+
+        val syncRequest =
+            PeriodicWorkRequestBuilder<SyncWorkManager>(1, TimeUnit.HOURS)
+                .setConstraints(constraints)
+                .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            SyncWorkManager.WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, syncRequest
+        )
+    }
+}
+```
+
+6- Vamos a ir ahora al MainActivity. Y desde allí vamos a llamar al WorkerUtil para que programé esta actualización de la información que definimos cada 1 hora. 
+
+```kotlin
+    // Llamamos desde aquí al WorkerUtil para que programe la actualización de esta activity cada 1 hora:
+    WorkerUtil.scheduleSync(this)
+```
+
+7- Ok. Ahora debemos hacer unos cambios para que no sincronize la información cada vez que abramos la aplicación sino solamente como lo indica el WorkerUtil
+
+A- Ya no vamos a llamar en el init del MainViewModel a la func reloadEarthquakes(sortType) sino que vamos a llamar a la que trae los datos desde nuestra base de datos que es: fun reloadEarthquakesFromDatabase(sortByMagnitude: Boolean)
+
+B- En la función que toma los datos de nuestra base de datos, le vamos a decir, que si nuestra base está vacia entonces tome los datos de internet. Eso solo va a suceder la primera vez dado que luego siempre tendremos algo disponible. 
+
+**¿Por que hacemos esto? Simple. Porque si los datos no cambian constantemente, es mucho mas rapido y por lo tanto eficiente traer nuestros datos de una base de datos en lugar de traerlos de internet.**
+
+-----------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

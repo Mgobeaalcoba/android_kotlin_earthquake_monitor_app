@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mgobeaalcoba.earthquakemonitor.Earthquake
 import com.mgobeaalcoba.earthquakemonitor.R
 import com.mgobeaalcoba.earthquakemonitor.api.ApiResponseStatus
+import com.mgobeaalcoba.earthquakemonitor.api.WorkerUtil
 import com.mgobeaalcoba.earthquakemonitor.databinding.ActivityMainBinding
 import com.mgobeaalcoba.earthquakemonitor.detail.DetailActivity
 
@@ -30,6 +31,9 @@ class MainActivity : AppCompatActivity() {
 
         // Establezco el tipo de Layout con el que voy a repetir mis elementos en la lista:
         binding.eqRecycler.layoutManager = LinearLayoutManager(this)
+
+        // Llamamos desde aquí al WorkerUtil para que programe la actualización de esta activity cada 1 hora:
+        WorkerUtil.scheduleSync(this)
 
         // Le pasamos al ViewModel el metodo de ordenamiento que seleccionamos para que cuando reinicie la app se cargué así por default:
         val sortType = getSortType()

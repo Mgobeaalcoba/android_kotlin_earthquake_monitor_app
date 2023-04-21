@@ -25,7 +25,7 @@ class MainViewModel(application: Application, sortType: Boolean): AndroidViewMod
         get() = _eqList
 
     init {
-        reloadEarthquakes(sortType)
+        reloadEarthquakesFromDatabase(sortType)
     }
 
     private fun reloadEarthquakes(sortByMagnitude: Boolean) {
@@ -45,6 +45,9 @@ class MainViewModel(application: Application, sortType: Boolean): AndroidViewMod
     fun reloadEarthquakesFromDatabase(sortByMagnitude: Boolean) {
         viewModelScope.launch {
             _eqList.value = repository.fetchEarthquakes(sortByMagnitude)
+            if (_eqList.value!!.isEmpty()) {
+                reloadEarthquakes(sortByMagnitude)
+            }
         }
     }
 }
