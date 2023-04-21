@@ -13,6 +13,7 @@
 - Data binding
 - LiveData y Observers
 - Option Menu y Ordenamientos distintos del Recycler View
+- Configuración de Shared Preferences
 
 <br>
 
