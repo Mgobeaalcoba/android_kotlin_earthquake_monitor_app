@@ -1813,6 +1813,12 @@ onDetach: va a desasociar el fragment del activity.
 
 ## Nuevo proyecto: Pokedex para aplicar fragments.
 
+Esta aplicación consta de dos fragments. 
+
+El de abajo es la lista de donde vamos a elegir nuestro pokemon
+
+El de arriba es la imagen y las caracteristicas del pokemos escogido. 
+
 
 
 
