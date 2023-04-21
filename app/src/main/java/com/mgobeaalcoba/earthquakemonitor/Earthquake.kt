@@ -1,9 +1,11 @@
 package com.mgobeaalcoba.earthquakemonitor
 
 import android.os.Parcelable
+import android.provider.Settings.Global.getString
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -17,8 +19,8 @@ data class Earthquake(
     val longitude: Double,
     val latitude: Double ) : Parcelable {
     // Métodos
-        fun getMagnitudeEarthquake(): String {
-        return magnitude.toString()
+        fun getMagnitudeEarthquake(): Double {
+        return magnitude
         }
         fun getLatitudeEarthquake(): String {
             return latitude.toString()
