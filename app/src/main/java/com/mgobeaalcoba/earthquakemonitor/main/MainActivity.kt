@@ -31,8 +31,11 @@ class MainActivity : AppCompatActivity() {
         // Establezco el tipo de Layout con el que voy a repetir mis elementos en la lista:
         binding.eqRecycler.layoutManager = LinearLayoutManager(this)
 
+        // Le pasamos al ViewModel el metodo de ordenamiento que seleccionamos para que cuando reinicie la app se cargué así por default:
+        val sortType = getSortType()
+
         // Creo mi variable de ViewModel:
-        viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
+        viewModel = ViewModelProvider(this, MainViewModelFactory(application, sortType)).get(MainViewModel::class.java)
 
         // Con el objeto adapter creado debo instanciar un adapter:
         val adapter = EqAdapter(this)
@@ -77,6 +80,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun getSortType(): Boolean {
+        val prefs = getPreferences(MODE_PRIVATE)
+        return prefs.getBoolean(Companion.SORT_TYPE_KEY, false)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -86,10 +94,20 @@ class MainActivity : AppCompatActivity() {
         val itemId = item.itemId
         if (itemId == R.id.main_menu_sort_magnitude) {
             viewModel.reloadEarthquakesFromDatabase(true)
+            saveSortType(true)
         } else if (itemId == R.id.main_menu_sort_time){
             viewModel.reloadEarthquakesFromDatabase(false)
+            saveSortType(false)
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun saveSortType(sortByMagnitude: Boolean) {
+        // val prefs = getSharedPreferences("eq_prefs", MODE_PRIVATE) Uso para mas de una activity.
+        val prefs = getPreferences(MODE_PRIVATE) // Uso para una sola activity
+        val editor = prefs.edit()
+        editor.putBoolean(Companion.SORT_TYPE_KEY, sortByMagnitude)
+        editor.apply()
     }
 
     private fun openDetailActivity(earthquake: Earthquake) {
@@ -110,5 +128,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             binding.eqEmptyView.visibility = View.GONE
         }
+    }
+
+    companion object {
+        private const val SORT_TYPE_KEY = "sort_type"
     }
 }

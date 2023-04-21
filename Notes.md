@@ -1539,6 +1539,127 @@ Ahí quedó pero los botones no funcionan aún. Debo darle vida a los mismos.
 
 2- Sacamos al ViewModel del alcance de la fun onCreate y lo pasamos a alcance global para poder usarlo desde las otras funciones. 
 
+------------------------
+
+**Shared Preferences:**
+
+Implementación que nos permite guardar modificaciones que hicimos en nuestra app, por ejemplo el ordenamiento de nuestro recycler view, para que cuando volvamos a abrir la app lo haga con esa configuración. 
+
+1- En MainActivity voy a crear un método llamado saveSortType(sortByMagnitude: Boolen). Si tuvieramos mas de un 2 tipos de ordenamientos entonces en lugar de recibir un booleano podría recibir un entero. Debemos hacerlo en MainActivity porque necesita un contexto y en ViewModel no podemos utilizar contextos. 
+
+```kotlin
+    private fun saveSortType(sortByMagnitude: Boolean) {
+        val prefs = getSharedPreferences("eq_prefs", MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putBoolean(SORT_TYPE_KEY, sortByMagnitude)
+        editor.apply()
+    }
+```
+
+El getSharedPreferences() lleva llave ("eq_prefs") pero nos permité usar esas preferencias en cualquier parte de nuestra aplicación solamente usando esa llave. 
+
+También podemos configurar nuestra preferencia con el metodo getPreferences(). Este a diferencia del anterior no usa llave pero tiene alcance limitado a esta Activity. 
+
+2- Creo una private const val para darle valor a SORT_TYPE_KEY: 
+
+```kotlin
+    private const val SORT_TYPE_KEY = "sort_type"
+```
+
+3- Invoco el método que acabo de crear en mi metodo onOptionsItemSelected() pasandole el mismo valor booleano que le pasamos a nuestro metodo del ViewModel
+
+```kotlin
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val itemId = item.itemId
+        if (itemId == R.id.main_menu_sort_magnitude) {
+            viewModel.reloadEarthquakesFromDatabase(true)
+            saveSortType(true)
+        } else if (itemId == R.id.main_menu_sort_time){
+            viewModel.reloadEarthquakesFromDatabase(false)
+            saveSortType(false)
+        }
+        return super.onOptionsItemSelected(item)
+    }
+```
+
+4- Finalmente, debemos ir al onCreate del MainActivity y pasarle el metodo de ordenamiento preferido al ViewModel desde allí para que ordene de esa forma. 
+
+para esto debemos: 
+
+A- Crear val sortType que obtiene el tipo de un metodo nuevo también a crear: 
+
+val sortType: 
+
+```kotlin
+        val sortType = getSortType()
+```
+
+fun getSortType()
+
+```kotlin
+    private fun getSortType(): Boolean {
+        val prefs = getPreferences(MODE_PRIVATE)
+        return prefs.getBoolean(Companion.SORT_TYPE_KEY, false)
+    }
+```
+
+B- Una vez obtenido el sortType debo pasarselo al MainViewModelFactory como atributo. Para lo cual también debo modificar los parametros de mi clase: 
+
+Envío de atributos
+
+```kotlin
+    viewModel = ViewModelProvider(this, MainViewModelFactory(application, sortType)).get(MainViewModel::class.java)
+```
+
+Modificación de parametros de mi clase MainViewModelFactory
+
+```kotlin
+class MainViewModelFactory(private val application: Application, private val sortType: Boolean) :
+    ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return MainViewModel(application, sortType) as T
+        }
+    }
+```
+
+Una vez que lo recibo en MainViewModelFactory debo envialo de nuevo al MainViewModel, por lo que debo hacer lo mismo, es decir, lo mando como atributo en el return como se ve arriba y lo recibo como parametro en el MainViewModel como muestro abajo: 
+
+```kotlin
+class MainViewModel(application: Application, sortType: Boolean): AndroidViewModel(application) {
+
+    private val database = getDatabase(application.applicationContext)
+    private val repository = MainRepository(database)
+
+    // Creo mi variable de tipo ApiResponseStatus:
+    private val _status = MutableLiveData<ApiResponseStatus>()
+    val status: LiveData<ApiResponseStatus>
+        get() = _status
+
+    private var _eqList = MutableLiveData<MutableList<Earthquake>>()
+    val eqlist: LiveData<MutableList<Earthquake>>
+        get() = _eqList
+
+    init {
+        reloadEarthquakes(sortType)
+    }
+    //... more code
+} 
+```
+
+Recibido como parametro en MainViewModel se lo paso como valor al metodo init en lugar del false que tenía por default como muestro arriba. Y listo! 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

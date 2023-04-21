@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 private val TAG = MainViewModel::class.java.simpleName
-class MainViewModel(application: Application): AndroidViewModel(application) {
+class MainViewModel(application: Application, sortType: Boolean): AndroidViewModel(application) {
 
     private val database = getDatabase(application.applicationContext)
     private val repository = MainRepository(database)
@@ -25,7 +25,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         get() = _eqList
 
     init {
-        reloadEarthquakes(false)
+        reloadEarthquakes(sortType)
     }
 
     private fun reloadEarthquakes(sortByMagnitude: Boolean) {

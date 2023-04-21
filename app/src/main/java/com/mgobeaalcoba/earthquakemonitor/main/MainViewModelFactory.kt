@@ -6,9 +6,9 @@ import androidx.lifecycle.ViewModelProvider
 
 // En el constructor del ViewModelFactory y en el return debe ir aquello que necesita mi ViewModel
 // En este caso solo "application". Pero podría sumar otras necesidades.
-class MainViewModelFactory(private val application: Application) :
+class MainViewModelFactory(private val application: Application, private val sortType: Boolean) :
     ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MainViewModel(application) as T
+            return MainViewModel(application, sortType) as T
         }
     }
