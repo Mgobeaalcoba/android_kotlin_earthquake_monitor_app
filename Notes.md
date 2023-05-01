@@ -756,6 +756,10 @@ interface EqDao {
 
 1- Una vez que hemos generado nuestra database y nuestra/s tabla/s en algun motor de bases. En este caso usé SQLite, ya podemos armar nuestra abstract class EqDatabase dentro del package database.
 
+Para implementar nuestra database y tabla en el proyecto con SQLite podemos seguir los pasos de este instructivo: 
+
+https://hackaprende.com/2021/02/15/micro-tutorial-de-sqlite/
+
 **¿Que es una clase abstracta?**
 
 Una clase abstracta es una clase que declara variables o declara métodos, pero no los utiliza esta clase directamente.
